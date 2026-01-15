@@ -44,7 +44,7 @@ target multi_project:
     end_law
     
     law project_b_planning:
-        start_date:2024-01-03 at 09:00  # Starts during Project A development
+        start_date:2024-01-03 at 09:00  
         period:12.0
         Event:
             b_req[planning]:"Mobile requirements"
@@ -276,7 +276,7 @@ target software_project:
 
     law phase_1_foundation:
         start_date:2024-01-01 at 09:00
-        period:80.0  # Estimated: 10 days
+        period:80.0  
         Event:
             setup[phase1]:"Project setup"
             architecture[phase1]:"System architecture"

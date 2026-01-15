@@ -226,7 +226,7 @@ class Validator:
             return
         
         # Validate token type
-        valid_types = [t[0] for t in ZENITH_KEYWORDS] + [
+        valid_types = [t for t in ZENITH_KEYWORDS] + [
             'comma', 'colon', 'hyphen', 'equals', 'carrot',
             'lparen', 'rparen', 'lbracket', 'rbracket',
             'date', 'time', 'dotted_number', 'number',
