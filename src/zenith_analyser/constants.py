@@ -49,6 +49,7 @@ ZENITH_KEYWORDS = {
     "key",
     "dictionnary",
     "end_target",
+    "EOF"
 }
 
 TIME_UNITS = {
