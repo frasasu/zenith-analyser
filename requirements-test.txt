@@ -1,0 +1,7 @@
+ # Testing dependencies
+-r requirements.txt
+
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.5.0
+hypothesis>=6.89.0

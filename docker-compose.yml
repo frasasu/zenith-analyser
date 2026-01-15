@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  zenith-analyser:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zenith-analyser
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./examples:/app/examples
+    working_dir: /app
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "python -m pytest tests/ -v"
+
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.docs
+    container_name: zenith-analyser-docs
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./docs:/app/docs
+      - ./src:/app/src
+    working_dir: /app
+    command: >
+      sh -c "cd docs && make livehtml"
+
+  examples:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zenith-analyser-examples
+    volumes:
+      - ./examples:/app/examples
+      - ./src:/app/src
+    working_dir: /app
+    command: >
+      sh -c "python examples/basic_usage.py"
+
+  benchmarks:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zenith-analyser-benchmarks
+    volumes:
+      - ./benchmarks:/app/benchmarks
+      - ./src:/app/src
+    working_dir: /app
+    command: >
+      sh -c "python benchmarks/benchmark_performance.py"

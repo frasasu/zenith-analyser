@@ -1,0 +1,2 @@
+# Core dependencies
+# No external dependencies for now

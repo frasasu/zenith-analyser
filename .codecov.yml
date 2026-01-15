@@ -1,0 +1,34 @@
+ coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+ comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+ ignore:
+  - "tests/"
+  - "examples/"
+  - "docs/"
+  - "scripts/"
+  - "benchmarks/"
+
+ flags:
+  unit:
+    paths:
+      - "src/zenith_analyser/"
+    carryforward: true
+  integration:
+    paths:
+      - "tests/test_integration.py"
+    carryforward: false

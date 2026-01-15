@@ -1,0 +1,255 @@
+# Zenith Language Sample Code
+# This file contains comprehensive examples of Zenith syntax
+
+# Basic Law Example
+law basic_example:
+    start_date:2024-01-15 at 09:00
+    period:2.0
+    Event:
+        MEETING:"Team meeting"
+        WORK:"Work session"
+        BREAK:"Coffee break"
+    GROUP:(MEETING 45^15 - WORK 45^15 - BREAK 15^0)
+end_law
+
+# Law with Indexed Events
+law indexed_example:
+    start_date:2024-01-16 at 10:00
+    period:3.0
+    Event:
+        TASK1[e1]:"First task"
+        TASK2[e2]:"Second task"
+        TASK3[e3]:"Third task"
+    GROUP:(TASK1 1.0^0.30 - TASK2 1.0^0.30 - TASK3 0.30^0)
+end_law
+
+# Complex Group with Multiple Dispersals
+law complex_group:
+    start_date:2024-01-17 at 08:00
+    period:8.0
+    Event:
+        PHASE1:"Planning phase"
+        PHASE2:"Execution phase"
+        PHASE3:"Review phase"
+        PHASE4:"Deployment"
+    GROUP:(PHASE1 2.0^1.0 - PHASE2 3.0^1.0 - PHASE3 1.0^0.30 - PHASE4 0.30^0)
+end_law
+
+# Target Structure
+target project_management:
+    key:"Software project"
+    dictionnary:
+        planning:"Project planning activities"
+        development:"Code development"
+        testing:"Quality assurance"
+        deployment:"Production deployment"
+    
+    # Nested law
+    law sprint_cycle:
+        start_date:2024-01-18 at 09:00
+        period:40.0
+        Event:
+            PLANNING[planning]:"Sprint planning"
+            DEVELOPMENT[development]:"Feature development"
+            TESTING[testing]:"Testing phase"
+            DEPLOYMENT[deployment]:"Sprint deployment"
+        GROUP:(PLANNING 4.0^8.0 - DEVELOPMENT 20.0^8.0 - TESTING 4.0^4.0 - DEPLOYMENT 4.0^0)
+    end_law
+    
+    # Nested target
+    target backend_team:
+        key:"Backend development"
+        dictionnary:
+            api:"API development"
+            database:"Database work"
+            integration:"System integration"
+        
+        law backend_sprint:
+            start_date:2024-01-19 at 10:00
+            period:30.0
+            Event:
+                API[api]:"REST API implementation"
+                DB[database]:"Database optimization"
+                INTEGRATION[integration]:"Third-party integration"
+            GROUP:(API 10.0^5.0 - DB 10.0^5.0 - INTEGRATION 5.0^0)
+        end_law
+    end_target
+    
+    target frontend_team:
+        key:"Frontend development"
+        dictionnary:
+            ui:"User interface"
+            ux:"User experience"
+            responsive:"Responsive design"
+        
+        law frontend_sprint:
+            start_date:2024-01-19 at 10:00
+            period:25.0
+            Event:
+                UI[ui]:"UI implementation"
+                UX[ux]:"UX improvements"
+                RESPONSIVE[responsive]:"Mobile optimization"
+            GROUP:(UI 10.0^5.0 - UX 8.0^2.0 - RESPONSIVE 5.0^0)
+        end_law
+    end_target
+end_target
+
+# Daily Routine Example
+target daily_routine:
+    key:"Daily productivity routine"
+    dictionnary:
+        morning:"Morning routine"
+        work:"Work hours"
+        exercise:"Physical exercise"
+        learning:"Learning time"
+        leisure:"Leisure activities"
+    
+    law weekday:
+        start_date:2024-01-22 at 06:30
+        period:16.0
+        Event:
+            MORNING[morning]:"Morning routine"
+            WORK1[work]:"Morning work session"
+            EXERCISE[exercise]:"Lunch workout"
+            WORK2[work]:"Afternoon work session"
+            LEARNING[learning]:"Evening learning"
+            LEISURE[leisure]:"Relaxation time"
+        GROUP:(MORNING 1.0^1.0 - WORK1 3.0^1.0 - EXERCISE 1.0^1.0 - WORK2 3.0^2.0 - LEARNING 2.0^2.0 - LEISURE 2.0^0)
+    end_law
+    
+    law weekend:
+        start_date:2024-01-27 at 08:00
+        period:12.0
+        Event:
+            SLEEP[morning]:"Sleep in"
+            EXERCISE[exercise]:"Long workout"
+            LEARNING[learning]:"Skill development"
+            LEISURE[leisure]:"Weekend activities"
+        GROUP:(SLEEP 2.0^1.0 - EXERCISE 2.0^2.0 - LEARNING 3.0^2.0 - LEISURE 4.0^0)
+    end_law
+end_target
+
+# Educational Curriculum
+target learning_path:
+    key:"Machine learning curriculum"
+    dictionnary:
+        basics:"Fundamental concepts"
+        math:"Mathematical foundations"
+        programming:"Coding skills"
+        projects:"Practical projects"
+        theory:"Theoretical understanding"
+    
+    target fundamentals:
+        key:"Core fundamentals"
+        dictionnary:
+            python[programming]:"Python programming"
+            algebra[math]:"Linear algebra"
+            stats[math]:"Statistics"
+            calculus[math]:"Calculus"
+        
+        law month_1:
+            start_date:2024-02-01 at 10:00
+            period:60.0
+            Event:
+                PYTHON[python]:"Learn Python basics"
+                ALGEBRA[algebra]:"Study linear algebra"
+                STATS[stats]:"Learn statistics"
+                CALCULUS[calculus]:"Study calculus"
+            GROUP:(PYTHON 20.0^10.0 - ALGEBRA 15.0^5.0 - STATS 10.0^5.0 - CALCULUS 10.0^0)
+        end_law
+    end_target
+    
+    target ml_basics:
+        key:"Machine learning basics"
+        dictionnary:
+            supervised[theory]:"Supervised learning"
+            unsupervised[theory]:"Unsupervised learning"
+            regression[basics]:"Regression models"
+            classification[basics]:"Classification models"
+        
+        law month_2:
+            start_date:2024-03-01 at 10:00
+            period:80.0
+            Event:
+                SUPERVISED[supervised]:"Study supervised learning"
+                REGRESSION[regression]:"Implement regression"
+                UNSUPERVISED[unsupervised]:"Study unsupervised learning"
+                CLASSIFICATION[classification]:"Implement classification"
+            GROUP:(SUPERVISED 20.0^10.0 - REGRESSION 15.0^10.0 - UNSUPERVISED 20.0^10.0 - CLASSIFICATION 15.0^0)
+        end_law
+    end_target
+    
+    target advanced_ml:
+        key:"Advanced topics"
+        dictionnary:
+            neural[theory]:"Neural networks"
+            deep[theory]:"Deep learning"
+            nlp[projects]:"NLP project"
+            vision[projects]:"Computer vision project"
+        
+        law month_3:
+            start_date:2024-04-01 at 10:00
+            period:100.0
+            Event:
+                NEURAL[neural]:"Study neural networks"
+                DEEP[deep]:"Learn deep learning"
+                NLP[nlp]:"Build NLP project"
+                VISION[vision]:"Build computer vision project"
+            GROUP:(NEURAL 25.0^15.0 - DEEP 25.0^15.0 - NLP 20.0^10.0 - VISION 20.0^0)
+        end_law
+    end_target
+end_target
+
+# Event with Multiple Occurrences
+law recurring_events:
+    start_date:2024-01-15 at 09:00
+    period:40.0
+    Event:
+        MEETING:"Team meeting"
+        WORK:"Work session"
+        REVIEW:"Code review"
+    GROUP:(MEETING 1.0^3.0 - WORK 3.0^1.0 - MEETING 1.0^3.0 - WORK 3.0^1.0 - REVIEW 1.0^0)
+end_law
+
+# Mixed Number Formats
+law mixed_formats:
+    start_date:2024-01-20 at 14:00
+    period:2.45
+    Event:
+        SHORT:"Short task"
+        MEDIUM:"Medium task"
+        LONG:"Long task"
+    GROUP:(SHORT 15^30 - MEDIUM 45^30 - LONG 1.15^0)
+end_law
+
+# Complex Nested Structure
+target enterprise:
+    key:"Enterprise system"
+    dictionnary:
+        strategic:"Strategic planning"
+        operational:"Operational management"
+        technical:"Technical implementation"
+    
+    target division_a:
+        key:"Division A"
+        dictionnary:
+            planning[strategic]:"Division planning"
+            execution[operational]:"Project execution"
+        
+        target team_a1:
+            key:"Team A1"
+            dictionnary:
+                dev[technical]:"Development work"
+                test[technical]:"Testing"
+            
+            law team_schedule:
+                start_date:2024-01-25 at 09:00
+                period:30.0
+                Event:
+                    DEVELOPMENT[dev]:"Feature development"
+                    TESTING[test]:"Quality testing"
+                GROUP:(DEVELOPMENT 20.0^5.0 - TESTING 5.0^0)
+            end_law
+        end_target
+    end_target
+end_target

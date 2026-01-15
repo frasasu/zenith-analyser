@@ -1,0 +1,251 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  test-release:
+    name: Test Release Build
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.VERSION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Test package installation
+        run: |
+          # Find and install wheel
+          WHEEL_FILE=$(ls dist/*.whl 2>/dev/null | head -1)
+          if [ -z "$WHEEL_FILE" ]; then
+            echo "❌ No wheel file found in dist/"
+            exit 1
+          fi
+          pip install "$WHEEL_FILE"
+          python -c "import zenith_analyser; print(f'Successfully installed zenith_analyser {zenith_analyser.__version__}')"
+
+      - name: Test package structure
+        run: |
+          python << 'EOF'
+          import os
+          import zipfile
+          import sys
+          import glob
+          
+          # Find wheel file
+          wheels = glob.glob('dist/*.whl')
+          if not wheels:
+              print('❌ No wheel files found in dist/')
+              sys.exit(1)
+          
+          wheel_path = wheels[0]
+          print(f'Checking wheel: {wheel_path}')
+          
+          try:
+              with zipfile.ZipFile(wheel_path) as zf:
+                  files = zf.namelist()
+                  required = [
+                      'zenith_analyser/__init__.py',
+                      'zenith_analyser/lexer.py',
+                      'zenith_analyser/parser.py',
+                      'zenith_analyser/analysers.py'
+                  ]
+                  
+                  missing_files = []
+                  for req in required:
+                      if not any(req in f for f in files):
+                          missing_files.append(req)
+                  
+                  if missing_files:
+                      print(f'❌ Missing required files: {missing_files}')
+                      sys.exit(1)
+                  
+                  print('✅ Wheel structure is correct')
+                  print(f'Total files in wheel: {len(files)}')
+                  print('Package files found:')
+                  zenith_files = [f for f in files if 'zenith_analyser' in f]
+                  for f in sorted(zenith_files)[:15]:  # Show first 15 files
+                      print(f'  {f}')
+                      
+          except Exception as e:
+              print(f'❌ Error checking wheel: {e}')
+              sys.exit(1)
+          EOF
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-packages
+          path: dist/
+          retention-days: 5
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: test-release
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/zenith-analyser
+    permissions:
+      id-token: write  # Required for trusted publishing
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-packages
+          path: dist/
+
+      - name: List distribution files
+        run: ls -la dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
+
+  create-release:
+    name: Create GitHub Release
+    needs: test-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get version from tag (direct)
+        id: get_version_direct
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Generate release notes
+        id: generate_release_notes
+        run: |
+          VERSION="${{ steps.get_version_direct.outputs.VERSION }}"
+          
+          # Create Python script to extract release notes
+          python << 'EOF'
+          import re
+          import sys
+          
+          version = sys.argv[1] if len(sys.argv) > 1 else ""
+          
+          try:
+              with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
+                  lines = f.readlines()
+              
+              found_version = False
+              release_notes = []
+              
+              for line in lines:
+                  # Look for version header
+                  if re.match(rf'^##\s+\[{re.escape(version)}\]', line.strip()):
+                      found_version = True
+                      continue
+                  
+                  # Stop at next version header
+                  if found_version and line.strip().startswith('## '):
+                      break
+                  
+                  # Collect notes
+                  if found_version and line.strip():
+                      release_notes.append(line.rstrip('\n'))
+              
+              if release_notes:
+                  # Remove empty lines at the beginning
+                  while release_notes and not release_notes[0].strip():
+                      release_notes.pop(0)
+                  # Remove empty lines at the end
+                  while release_notes and not release_notes[-1].strip():
+                      release_notes.pop(-1)
+                  
+                  output = '\n'.join(release_notes)
+                  print(output)
+              else:
+                  print(f"## Release {version}")
+                  print("\nPlease see CHANGELOG.md for details.")
+                  
+          except Exception as e:
+              print(f"## Release {version}")
+              print(f"\nError extracting release notes: {e}")
+          EOF "$VERSION" > release_notes.txt
+          
+          # Create release body
+          echo "## What's Changed" > release_body.md
+          echo "" >> release_body.md
+          cat release_notes.txt >> release_body.md
+          echo "" >> release_body.md
+          echo "## Installation" >> release_body.md
+          echo "" >> release_body.md
+          echo '```bash' >> release_body.md
+          echo "pip install zenith-analyser==$VERSION" >> release_body.md
+          echo '```' >> release_body.md
+
+      - name: Download distribution files
+        uses: actions/download-artifact@v3
+        with:
+          name: release-packages
+          path: dist/
+
+      - name: List files for release
+        run: ls -la dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Release v${{ steps.get_version_direct.outputs.VERSION }}"
+          body_path: release_body.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  notify:
+    name: Notify Success
+    needs: [publish-pypi, create-release]
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Get version from tag (direct)
+        id: get_version_for_notify
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Send success notification
+        run: |
+          VERSION="${{ steps.get_version_for_notify.outputs.VERSION }}"
+          REPO="${{ github.repository }}"
+          
+          echo "=========================================="
+          echo "✅ Release v$VERSION published successfully!"
+          echo "=========================================="
+          echo ""
+          echo "📦 PyPI: https://pypi.org/project/zenith-analyser/$VERSION/"
+          echo "🏷️  GitHub: https://github.com/$REPO/releases/tag/v$VERSION"
+          echo ""
+          echo "Install with:"
+          echo "pip install zenith-analyser==$VERSION"

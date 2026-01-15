@@ -1,0 +1,43 @@
+# CODEOWNERS file for Zenith Analyser
+# Defines who is responsible for specific parts of the codebase
+
+# Core maintainer
+* @frasasu
+
+# Source code
+/src/ @frasasu
+
+# Documentation
+/docs/ @frasasu
+README.md @frasasu
+CONTRIBUTING.md @frasasu
+AUTHORS.md @frasasu
+
+# Tests
+/tests/ @frasasu
+
+# Examples
+/examples/ @frasasu
+
+# Configuration files
+pyproject.toml @frasasu
+setup.py @frasasu
+requirements*.txt @frasasu
+.pre-commit-config.yaml @frasasu
+
+# GitHub workflows
+/.github/ @frasasu
+
+# License and legal
+LICENSE @frasasu
+NOTICE @frasasu
+
+# Documentation generation
+mkdocs.yml @frasasu
+.readthedocs.yml @frasasu
+
+# Benchmarks
+/benchmarks/ @frasasu
+
+# Scripts
+/scripts/ @frasasu

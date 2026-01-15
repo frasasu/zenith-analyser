@@ -1,0 +1,111 @@
+- name: "bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+  
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature or request"
+  
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation"
+  
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+  
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed"
+  
+- name: "question"
+  color: "d876e3"
+  description: "Further information is requested"
+  
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on"
+  
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists"
+  
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right"
+  
+- name: "priority: high"
+  color: "b60205"
+  description: "High priority issue"
+  
+- name: "priority: medium"
+  color: "d93f0b"
+  description: "Medium priority issue"
+  
+- name: "priority: low"
+  color: "0e8a16"
+  description: "Low priority issue"
+  
+- name: "status: blocked"
+  color: "ee0701"
+  description: "Blocked by other issues"
+  
+- name: "status: in progress"
+  color: "cccccc"
+  description: "Currently being worked on"
+  
+- name: "status: review needed"
+  color: "fbca04"
+  description: "Needs review"
+  
+- name: "type: bug"
+  color: "d73a4a"
+  description: "Bug report"
+  
+- name: "type: feature"
+  color: "a2eeef"
+  description: "Feature request"
+  
+- name: "type: performance"
+  color: "008672"
+  description: "Performance related"
+  
+- name: "type: security"
+  color: "ee0701"
+  description: "Security related"
+  
+- name: "area: lexer"
+  color: "c5def5"
+  description: "Related to the lexer"
+  
+- name: "area: parser"
+  color: "c5def5"
+  description: "Related to the parser"
+  
+- name: "area: analyser"
+  color: "c5def5"
+  description: "Related to the analyser"
+  
+- name: "area: api"
+  color: "c5def5"
+  description: "Related to the API"
+  
+- name: "area: docs"
+  color: "0075ca"
+  description: "Related to documentation"
+  
+- name: "area: tests"
+  color: "00ff00"
+  description: "Related to tests"
+  
+- name: "dependencies"
+  color: "0366d6"
+  description: "Pull requests that update a dependency file"
+  
+- name: "breaking change"
+  color: "b60205"
+  description: "Includes breaking changes"
+  
+- name: "hacktoberfest"
+  color: "ff8c00"
+  description: "Hacktoberfest contributions"
