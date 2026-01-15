@@ -296,7 +296,7 @@ target software_project:
     end_law
     
     law unexpected_delay:
-        start_date:2024-01-25 at 09:00  # During phase 2
+        start_date:2024-01-25 at 09:00  
         period:40.0  
         Event:
             issue[delay]:"Technical issue resolution"
@@ -304,7 +304,7 @@ target software_project:
     end_law
     
     law phase_3_final:
-        start_date:2024-02-16 at 09:00  # Adjusted for delay
+        start_date:2024-02-16 at 09:00 
         period:120.0  
         Event:
             testing[phase3]:"Comprehensive testing"

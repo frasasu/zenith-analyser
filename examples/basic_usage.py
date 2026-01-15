@@ -105,10 +105,12 @@ def example_3_population_analysis():
     code = """
 target organization:
     key:"Organization Structure"
-    
+    dictionnary:
+        dept_a_activity:"Department A activities"
     target department_a:
         key:"Department A"
-        
+        dictionnary:
+            dept_a_activity:"Department A activities"
         law dept_a_activity:
             start_date:2024-01-01 at 09:00
             period:8.0
@@ -121,10 +123,12 @@ target organization:
     
     target department_b:
         key:"Department B"
-        
+        dictionnary:
+            team_b1:"Team B1 activities"
         target team_b1:
             key:"Team B1"
-            
+            dictionnary:
+                 dept_a_activity:"Department A activities"
             law team_b1_activity:
                 start_date:2024-01-01 at 10:00
                 period:6.0

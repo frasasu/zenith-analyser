@@ -21,6 +21,8 @@ def workflow_1_batch_processing():
         "project_a.zenith": """
 target project_a:
     key:"Project Alpha"
+    dictionnary:
+        dept_a_activity:"Department A activities"
     law sprint_1:
         start_date:2024-01-01 at 09:00
         period:40.0
@@ -36,6 +38,8 @@ end_target
         "project_b.zenith": """
 target project_b:
     key:"Project Beta"
+    dictionnary:
+      dept_a_activity:"Department A activities"
     law sprint_1:
         start_date:2024-01-08 at 09:00
         period:40.0
@@ -51,6 +55,8 @@ end_target
         "project_c.zenith": """
 target project_c:
     key:"Project Gamma"
+    dictionnary:
+    dept_a_activity:"Department A activities"
     law sprint_1:
         start_date:2024-01-15 at 09:00
         period:40.0
@@ -308,7 +314,7 @@ target validation_test:
             task1[dev]:"Task 1"
             task2[dev]:"Task 2"
             task3[dev]:"Task 3"
-        GROUP:(task1 2.0^0.05 - task2 2.0^0.05 - task3 2.0^0)  # Very short gaps
+        GROUP:(task1 2.0^0.05 - task2 2.0^0.05 - task3 2.0^0)  
     end_law
     
     law marathon_session:
@@ -494,7 +500,8 @@ def workflow_4_continuous_integration():
     test_code = """
 target ci_test:
     key:"CI/CD Test Project"
-    
+    dictionnary:
+    dept_a_activity:"Department A activities"
     law build_pipeline:
         start_date:2024-01-01 at 09:00
         period:2.0
