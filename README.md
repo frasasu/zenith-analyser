@@ -26,4 +26,4 @@ A powerful Python library for analyzing structured temporal laws with events, ch
 ### From PyPI
 
 ```bash
-pip install zenith_analyser
+pip install zenith-analyser
