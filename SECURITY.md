@@ -91,8 +91,8 @@ We appreciate security researchers following these guidelines:
 
 ## Security Contacts
 
-- Primary: security@example.com
-- Backup: maintainers@example.com
+- Primary: frasasudev@gmail.com
+- Backup: frasasudev@gmail.com
 
 ## Security-Related Configuration
 
