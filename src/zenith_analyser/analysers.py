@@ -377,8 +377,7 @@ class TargetAnalyser:
             "direct_laws": target['direct_laws'],
             "descendant_laws": list(target['all_descendants_laws'])
         }
-    
-    def extract_laws_for_target(self, target_name: str) -> Dict[str, Dict[str, Any]]:
+    def extract_laws_for_target(self, name_target: str) -> Dict[str, Dict[str, Any]]:
         """
         Extract laws for a specific target with dictionary inheritance.
         
@@ -391,77 +390,48 @@ class TargetAnalyser:
         Raises:
             ZenithAnalyserError: If target not found
         """
-        if target_name not in self.targets:
-            raise ZenithAnalyserError(f"Target '{target_name}' not found", target_name=target_name)
-        
-        target = self.targets[target_name]
-        
-        # Get all descendant laws
-        all_law_names = target['all_descendants_laws']
-        all_laws = {}
-        
-        # Get base laws
-        base_laws = self.law_analyser.laws
-        
-        # Apply dictionary inheritance
-        for law_name in all_law_names:
-            if law_name in base_laws:
-                law_data = copy.deepcopy(base_laws[law_name])
-                
-                # Apply dictionary from this target
-                self._apply_dictionary(law_data, target['dictionnary'])
-                
-                # Apply dictionaries from parent targets
-                current_target = target
-                while current_target['path']:
-                    parent_path = current_target['path'][:-1]
-                    if parent_path:
-                        # Find parent target
-                        for t_name, t_data in self.targets.items():
-                            if t_data['path'] == parent_path:
-                                self._apply_dictionary(law_data, t_data['dictionnary'])
-                                current_target = t_data
-                                break
-                    else:
-                        break
-                
-                all_laws[law_name] = law_data
-        
-        return all_laws
+        if name_target not in self.targets:
+            raise ZenithAnalyserError(f"Target '{name_target}' not found", target_name=name_target)        
+
+        targets=copy.deepcopy(self.extract_targets(self.ast))
+        laws=copy.deepcopy(self.law_analyser.extract_laws(self.ast))
     
-    def _apply_dictionary(self, law_data: Dict[str, Any], dictionary: List[Dict[str, Any]]) -> None:
-        """
-        Apply dictionary entries to a law's events.
-        
-        Args:
-            law_data: Law data to modify
-            dictionary: Dictionary to apply
-        """
-        if not dictionary or 'dictionnary' not in law_data:
-            return
-        
-        # Create mapping from dictionary
-        dict_map = {}
-        for entry in dictionary:
-            entry_name = entry.get('name')
-            entry_desc = entry.get('description')
-            entry_index = entry.get('index')
+        data_laws={}
+
+        def _traverse(target_name):
+
+            direct_laws_names=targets[target_name]['direct_laws']
+            direct_laws={}
+            dictionnary=targets[target_name]["dictionnary"]
+            direct_targets_names=targets[target_name].get("direct_targets",set())
             
-            if entry_name and entry_desc:
-                if entry_index:
-                    dict_map[entry_index] = entry_desc
-                else:
-                    dict_map[entry_name] = entry_desc
+
+            for name in direct_laws_names:
+                direct_laws[name] = copy.deepcopy(laws[name])
+
+            for dict in dictionnary:
+                for name in direct_laws_names:
+                    for index, event in enumerate(direct_laws[name]['dictionnary']):
+                        if dict['name'] == event.get('index',''):
+                            direct_laws[name]['dictionnary'][index]['description']=dict['description']     
+
+            for dict  in dictionnary:
+                for name in direct_targets_names:
+                    for index, event in enumerate(targets[name]['dictionnary']):
+                        if dict['name'] == event.get('index',''):
+                            targets[name]["dictionnary"][index]["description"]=dict['description']  
+
+            for name in list(direct_laws.keys()):
+                data_laws[name]=copy.deepcopy(direct_laws[name])
+
+            for name in direct_targets_names:
+                _traverse(name) 
         
-        # Apply to law's dictionnary
-        for event in law_data['dictionnary']:
-            event_name = event.get('name')
-            event_index = event.get('index')
-            
-            if event_index and event_index in dict_map:
-                event['description'] = dict_map[event_index]
-            elif event_name and event_name in dict_map:
-                event['description'] = dict_map[event_name]
+        _traverse(name_target)   
+
+        return data_laws        
+    
+   
     
     def get_targets_by_generation(self, generation: int) -> List[str]:
         """
@@ -507,6 +477,93 @@ class TargetAnalyser:
             if target.get('key') == key:
                 result.append(name)
         return result
+    
+    def corp_extract_laws_transformed(self, generation:int=1)-> Dict[str, Dict[str, Any]]:
+        """
+    Extract laws transformed by dictionary inheritance for a specific generation.
+    
+    Args:
+        generation: Generation level to extract (1 = root generation)
+    
+    Returns:
+        Dictionary of laws with dictionary inheritance applied
+    
+    Raises:
+        ZenithValidationError: If generation is less than 1
+        """
+        if generation < 1:
+          raise ZenithValidationError(
+            f"Generation level must be at least 1: {generation}",
+            validation_type="generation"
+        )
+
+        data_laws={}
+
+        paths={}
+        targets_names=[]
+        for name in list(self.targets.keys()):
+            targets_names.append(name)
+
+        for name in targets_names:
+            paths[name]={
+                "name":name,
+                "path":self.targets[name]["path"],
+                "generation":len(self.targets[name]["path"])
+            }    
+
+        allowed_targets_name=[] 
+        for name in targets_names:
+            if paths[name]['generation'] == generation:
+                allowed_targets_name.append(name) 
+
+        for target_name in allowed_targets_name:
+            laws={}  
+            for name in self.extract_laws_for_target(target_name):
+                laws[name]=copy.deepcopy(self.extract_laws_for_target(target_name).get(name,""))
+
+            for name in list(laws.keys()):
+                data_laws[name]=copy.deepcopy(laws[name])  
+
+        return data_laws     
+
+    def extract_laws_population(self, population: int = 1)-> Dict[str, Dict[str, Any]]:
+        """
+    Extract laws for a specific population level with inheritance.
+    
+    Args:
+        population: Population level (1 = first generation, 0 = all laws)
+    
+    Returns:
+        Dictionary of laws with dictionary inheritance for the specified population
+    
+    Raises:
+        ValueError: If population is negative
+        """
+        if population < 0:
+          raise ZenithValidationError(
+            f"Population level cannot be negative: {population}",
+            validation_type="population"
+        )
+       
+        laws_population = {}
+        for i in range(population, 0, -1):
+            current_gen_laws = self.corp_extract_laws_transformed(i)
+            
+            for name_gen, law_data in current_gen_laws.items():
+                if name_gen not in laws_population:
+                    laws_population[name_gen] = copy.deepcopy(law_data)
+
+        
+        top_level_laws = self.law_analyser.extract_laws(self.ast)
+        
+        for name_global, law_data in top_level_laws.items():
+            if name_global not in laws_population:
+                laws_population[name_global] = copy.deepcopy(law_data)
+
+        return laws_population      
+
+    def extract_laws_max_population(self):
+        return self.extract_laws_population(self.get_max_generation())     
 
 
 class ZenithAnalyser:
