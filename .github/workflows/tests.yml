@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[test]"
+        pip install -e .[dev]  # Unifié sur [dev] au lieu de [test]
         pip list
 
     - name: Run unit tests
@@ -56,7 +56,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        pip install -e .[dev]  # Déjà bon
         pip install psutil memory-profiler
 
     - name: Run benchmarks
@@ -88,7 +88,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+        pip install -e .[dev]  # Déjà bon
 
     - name: Run scalability tests
       run: |
@@ -106,12 +106,12 @@ jobs:
             scalability = data.get('benchmarks', {}).get('scalability', {})
             for size, metrics in scalability.items():
                 if metrics.get('total_time_ms', 0) > 1000 and '1000' in size:
-                    print(f'⚠️ Performance warning: {size} took {metrics["total_time_ms"]}ms')
+                    print(f'Warning: Performance warning: {size} took {metrics['total_time_ms']}ms')
                     sys.exit(1)
             
-            print('✅ All performance checks passed')
+            print('All performance checks passed')
         except Exception as e:
-            print(f'❌ Error checking performance: {e}')
+            print(f'Error checking performance: {e}')
             sys.exit(1)
         "
 

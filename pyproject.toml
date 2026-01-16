@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zenith-analyser"
-version = "1.0.0"  # Aligné sur ta release PyPI, change pour les prochaines versions
+version = "1.0.0"  # Aligné avec ta release PyPI
 description = "A library for analyzing structured temporal laws"
 readme = "README.md"
 authors = [{ name = "Francois TUMUSAVYEYESU", email = "frasasudev@gmail.com" }]
@@ -21,23 +21,24 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Intended Audience :: Developers",
+    "Development Status :: 5 - Production/Stable",
 ]
-keywords = ["temporal", "chronology", "dsl", "parser", "analysis", "simulation"]
-dependencies = []  # Ajoute ici si tu as des runtime deps externes plus tard
+keywords = ["temporal", "chronology", "dsl", "parser", "analysis", "simulation", "zenith"]
+dependencies = []  # Ajoute des deps runtime si besoin plus tard
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
-    # Tu peux ajouter pre-commit, mypy, etc. si besoin
+    "mypy>=1.0.0",  # Pour le type check dans lint
 ]
 
 [project.scripts]
 zenith = "zenith_analyser.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]  # Indispensable pour le src layout
+where = ["src"]
 namespaces = false
 
 [tool.black]
