@@ -1084,7 +1084,7 @@ class ZenithAnalyser:
             "valid_laws": len(valid_descriptions),
             "total_events": len(all_events),
             "total_duration_minutes": total_duration,
-            "average_law_duration_minutes": total_duration / len(valid_descriptions) if valid_descriptions else 0,
+            "average_law_duration_minutes": int(total_duration / len(valid_descriptions) if valid_descriptions else 0),
             "start_range": all_events[0]["start_datetime"] if all_events else None,
             "end_range": all_events[-1]["end_datetime"] if all_events else None
         }
@@ -1111,7 +1111,7 @@ class ZenithAnalyser:
                 "name": event_name,
                 "count": stats["count"],
                 "total_duration_minutes": stats["total_duration"],
-                "mean_duration_minutes": stats["total_duration"] / stats["count"] if stats["count"] > 0 else 0,
+                "mean_duration_minutes":int(stats["total_duration"] / stats["count"] if stats["count"] > 0 else 0),
                 "law_count": len(stats["laws"]),
                 "laws": list(stats["laws"])
             })
