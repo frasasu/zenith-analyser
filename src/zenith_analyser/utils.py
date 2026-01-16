@@ -27,10 +27,10 @@ from .exceptions import ZenithTimeError, ZenithValidationError
 
 def point_to_minutes(point: str) -> int:
     """
-    Convert a Zenith point (format Y.M.D.H.M) to minutes.
+    Convert a Zenith point (format M.H.D.M.Y) to minutes.
     
     Args:
-        point: Point in Zenith format (e.g., "1.15.0")
+        point: Point in Zenith format (e.g., "30.0.0" for 30 days)
     
     Returns:
         Total number of minutes
@@ -44,8 +44,8 @@ def point_to_minutes(point: str) -> int:
         60
         >>> point_to_minutes("0.1.30")
         90
-        >>> point_to_minutes("1.15.0")
-        1500
+        >>> point_to_minutes("30.0.0")
+        43200  # 30 days
     """
     if not point:
         raise ZenithTimeError("Point cannot be empty")
@@ -62,6 +62,7 @@ def point_to_minutes(point: str) -> int:
         if not part.isdigit():
             raise ZenithTimeError(f"Invalid point part: '{part}' in '{point}'")
     
+    
     # Convert to minutes
     total_minutes = 0
     for i, part in enumerate(reversed(parts)):
@@ -73,6 +74,14 @@ def point_to_minutes(point: str) -> int:
             raise ZenithTimeError(f"Point part cannot be negative: '{value}' in '{point}'")
         
         total_minutes += value * POINT_MULTIPLIERS[i]
+    
+    # Validate reasonable duration (max 1000 years)
+    max_minutes = 518400 * 100  # 1000 years
+    if total_minutes > max_minutes:
+        raise ZenithTimeError(
+            f"Duration too large: {total_minutes} minutes ({total_minutes/518400:.1f} years). "
+            f"Check point format: '{point}'"
+        )
     
     return -total_minutes if is_negative else total_minutes
 
@@ -95,8 +104,8 @@ def minutes_to_point(total_minutes: Union[int, float]) -> str:
         '1.0'
         >>> minutes_to_point(90)
         '0.1.30'
-        >>> minutes_to_point(1500)
-        '1.15.0'
+        >>> minutes_to_point(43200)
+        '30.0.0'  # 30 days
     """
     if not isinstance(total_minutes, (int, float)):
         raise ZenithTimeError(f"Total minutes must be a number, got {type(total_minutes)}")
@@ -105,28 +114,36 @@ def minutes_to_point(total_minutes: Union[int, float]) -> str:
         raise ZenithTimeError(f"Total minutes cannot be NaN or infinite")
     
     # Handle negative values
-    is_negative = total_minutes < 0
-    remaining_minutes = abs(int(total_minutes))
+    if total_minutes < 0:
+        return "0"
+    
+    remaining_minutes = int(total_minutes)
     
     if remaining_minutes == 0:
         return "0"
+
     
     parts = []
     
+    # Process from most significant to least significant
     for multiplier in reversed(POINT_MULTIPLIERS):
-        value = remaining_minutes // multiplier
-        remaining_minutes %= multiplier
-        parts.append(str(value))
+        count = remaining_minutes // multiplier
+        
+        # Add part if it's non-zero OR if we already have some parts
+        if count == 0 and len(parts) > 0:
+            parts.append(str(count))
+        elif count > 0:
+            parts.append(str(count))
+            remaining_minutes -= count * multiplier
     
-    # Remove trailing zeros
-    while len(parts) > 1 and parts[-1] == '0':
-        parts.pop()
+    # If no parts were added, return "0"
+    if not parts:
+        return "0"
     
-    # Reverse back to Y.M.D.H.M format
-    parts.reverse()
+    # Join with dots
     point = ".".join(parts)
     
-    return f"-{point}" if is_negative else point
+    return point
 
 
 def parse_datetime(date_str: str, time_str: str) -> datetime:
@@ -271,8 +288,8 @@ def validate_point(point_str: str) -> bool:
         if not part.isdigit():
             return False
     
-    # Check maximum parts
-    if len(parts) > len(POINT_MULTIPLIERS):
+    # Check maximum parts (5: minutes, hours, days, months, years)
+    if len(parts) > 5:
         return False
     
     return True
@@ -357,8 +374,9 @@ def format_duration(minutes: int) -> str:
     if minutes == 0:
         return "0 minutes"
     
-    years = minutes // 525600
-    months = (minutes % 525600) // 43200
+    # Using your custom multipliers: 518400 minutes = 1 year (360 days)
+    years = minutes // 518400
+    months = (minutes % 518400) // 43200
     days = (minutes % 43200) // 1440
     hours = (minutes % 1440) // 60
     mins = minutes % 60

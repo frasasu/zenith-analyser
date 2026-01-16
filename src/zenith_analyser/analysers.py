@@ -377,6 +377,7 @@ class TargetAnalyser:
             "direct_laws": target['direct_laws'],
             "descendant_laws": list(target['all_descendants_laws'])
         }
+    
     def extract_laws_for_target(self, name_target: str) -> Dict[str, Dict[str, Any]]:
         """
         Extract laws for a specific target with dictionary inheritance.
@@ -431,8 +432,6 @@ class TargetAnalyser:
 
         return data_laws        
     
-   
-    
     def get_targets_by_generation(self, generation: int) -> List[str]:
         """
         Get targets at a specific generation level.
@@ -480,16 +479,16 @@ class TargetAnalyser:
     
     def corp_extract_laws_transformed(self, generation:int=1)-> Dict[str, Dict[str, Any]]:
         """
-    Extract laws transformed by dictionary inheritance for a specific generation.
-    
-    Args:
-        generation: Generation level to extract (1 = root generation)
-    
-    Returns:
-        Dictionary of laws with dictionary inheritance applied
-    
-    Raises:
-        ZenithValidationError: If generation is less than 1
+        Extract laws transformed by dictionary inheritance for a specific generation.
+        
+        Args:
+            generation: Generation level to extract (1 = root generation)
+        
+        Returns:
+            Dictionary of laws with dictionary inheritance applied
+        
+        Raises:
+            ZenithValidationError: If generation is less than 1
         """
         if generation < 1:
           raise ZenithValidationError(
@@ -525,19 +524,19 @@ class TargetAnalyser:
                 data_laws[name]=copy.deepcopy(laws[name])  
 
         return data_laws     
-
+    
     def extract_laws_population(self, population: int = 1)-> Dict[str, Dict[str, Any]]:
         """
-    Extract laws for a specific population level with inheritance.
-    
-    Args:
-        population: Population level (1 = first generation, 0 = all laws)
-    
-    Returns:
-        Dictionary of laws with dictionary inheritance for the specified population
-    
-    Raises:
-        ValueError: If population is negative
+        Extract laws for a specific population level with inheritance.
+        
+        Args:
+            population: Population level (1 = first generation, 0 = all laws)
+        
+        Returns:
+            Dictionary of laws with dictionary inheritance for the specified population
+        
+        Raises:
+            ValueError: If population is negative
         """
         if population < 0:
           raise ZenithValidationError(
@@ -561,7 +560,7 @@ class TargetAnalyser:
                 laws_population[name_global] = copy.deepcopy(law_data)
 
         return laws_population      
-
+    
     def extract_laws_max_population(self):
         return self.extract_laws_population(self.get_max_generation())     
 
@@ -614,6 +613,144 @@ class ZenithAnalyser:
         
         self.law_analyser = LawAnalyser(self.ast)
         self.target_analyser = TargetAnalyser(self.ast)
+    
+    def _simulate_law_events(self, law_data: Dict[str, Any], dict_map: Dict[str, str]) -> List[Tuple[datetime, str, str, str]]:
+        """
+        Simulate events for a single law.
+        
+        Args:
+            law_data: Law data dictionary
+            dict_map: Dictionary mapping event names to descriptions
+        
+        Returns:
+            List of simulated events as tuples (start_time, law_name, event_description, end_time)
+        """
+        if 'group' not in law_data or 'date' not in law_data or 'time' not in law_data:
+            return []
+
+        law_name = law_data['name']
+        date = law_data['date']
+        time = law_data['time']
+        start_date = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+        current_time = start_date
+        
+        simulated_events = []
+        group_m = law_data['group']
+        
+        event_descriptions = {item['name']: dict_map.get(item['name'], item.get('description', item['name']))
+                              for item in law_data.get('dictionnary', [])}
+        
+        for index, event in enumerate(group_m):
+            event_id = event["name"] 
+            event_description = event_descriptions.get(event_id, event_id) 
+            
+            chronocoherence = point_to_minutes(event['chronocoherence'])
+            end_date_event = current_time + timedelta(minutes=chronocoherence)
+            
+            simulated_events.append((
+                current_time, 
+                law_name,
+                event_description, 
+                end_date_event
+            ))
+            
+            current_time = end_date_event
+            
+            if index < len(group_m) - 1:
+                chronodispersal = point_to_minutes(event['chronodispersal'])
+                current_time += timedelta(minutes=chronodispersal)
+
+        return simulated_events
+    
+    def target_description(self, target_name: str) -> Dict[str, Any]:
+        """
+        Analyse les lois associées à un target spécifique en garantissant une séquence
+        chronologique en simulant et triant les événements de toutes les lois liées,
+        et retourne le résultat de law_description_data.
+        """
+        
+        if target_name not in self.target_analyser.targets:
+            raise ZenithAnalyserError(f"Target '{target_name}' not found", target_name=target_name)
+
+        # 1. Extraction des lois transformées (avec dictionnaires mis à jour)
+        transformed_laws = self.target_analyser.extract_laws_for_target(target_name)
+        
+        if not transformed_laws:
+            raise ZenithAnalyserError(f"Target '{target_name}' has no direct or descendant laws to analyze.", target_name=target_name)
+
+        # 2. Préparation du dictionnaire des descriptions d'événements finales (du target)
+        target_dict = self.target_analyser.targets[target_name].get("dictionnary", [])
+        merged_dictionnary_map = {item['name']: item['description'] for item in target_dict}
+
+        # 3. Simulation et collecte de TOUS les événements triés
+        all_simulated_events = []
+        
+        for law_name, law_data in transformed_laws.items():
+            simulated_events = self._simulate_law_events(law_data, merged_dictionnary_map)
+            all_simulated_events.extend(simulated_events)
+            
+        # Trier TOUS les événements simulés par date de début
+        all_simulated_events.sort(key=lambda x: x[0])
+        
+        if not all_simulated_events:
+            raise ZenithAnalyserError(f"No simulatible events found for Target '{target_name}'.", target_name=target_name)
+             
+        # 4. Créer la structure "loi fusionnée" (merged_law_data)
+        
+        # Trouver la loi de base (celle qui commence le plus tôt)
+        base_law_name = all_simulated_events[0][1] # Nom de la loi de l'événement le plus précoce
+        base_law_data = transformed_laws[base_law_name]
+        
+        merged_law_data = copy.deepcopy(base_law_data)
+        merged_law_data['name'] = target_name 
+        
+        # Mettre à jour la date de début de la loi fusionnée
+        first_event_start_time = all_simulated_events[0][0]
+        merged_law_data['date'] = first_event_start_time.strftime("%Y-%m-%d")
+        merged_law_data['time'] = first_event_start_time.strftime("%H:%M")
+
+        # 5. Reconstruire le 'group' et le 'dictionnary' factices pour l'analyse métrique
+        
+        new_group = []
+        
+        for i, (start_time, _, event_desc, end_time) in enumerate(all_simulated_events):
+            
+            # 5.1. Calculer Cohérence (durée de l'événement)
+            coherence_minutes = int((end_time - start_time).total_seconds() / 60)
+            
+            # 5.2. Calculer Dispersal (temps entre la fin de cet événement et le début du suivant)
+            dispersal_minutes = 0
+            if i < len(all_simulated_events) - 1:
+                next_start_time = all_simulated_events[i+1][0]
+                dispersal_minutes = int((next_start_time - end_time).total_seconds() / 60)
+            
+            # Pour que law_description_data fonctionne, nous devons utiliser le format de "point" pour chronocoherence/chronodispersal
+            # Comme nous travaillons avec des minutes réelles, nous les convertissons en un format simple de type "nombre"
+            # (qui est accepté par point_to_minutes car il est traité comme X.0.0.0.0 ou 0.X.0.0.0)
+            coherence_str = minutes_to_point(coherence_minutes) if coherence_minutes > 0 else "0"
+            dispersal_str = minutes_to_point(max(0, dispersal_minutes))
+            
+            new_group.append({
+                # Utiliser la description comme 'name' (ID) pour l'analyse métrique
+                "name": event_desc, 
+                "chronocoherence": coherence_str,
+                "chronodispersal": dispersal_str
+            })
+            
+        # 5.3. Mettre à jour les données fusionnées
+        merged_law_data['group'] = new_group
+        
+        # 5.4. Reconstruire le dictionnaire pour mapper la 'name' (qui est la description) à elle-même
+        # C'est nécessaire pour que la boucle de substitution de law_description_data ne casse pas l'analyse
+        final_dictionnary = []
+        unique_event_names = sorted(list(set(event['name'] for event in new_group)))
+        for name in unique_event_names:
+            final_dictionnary.append({"name": name, "description": name})
+        
+        merged_law_data['dictionnary'] = final_dictionnary
+
+        # 6. Appel final
+        return self.law_description_data(target_name, merged_law_data)
     
     def law_description(self, name: str, population: int = 0) -> Dict[str, Any]:
         """
@@ -675,12 +812,11 @@ class ZenithAnalyser:
         for entry in law_data['dictionnary']:
             entry_name = entry.get('name')
             entry_desc = entry.get('description', '')
-            entry_index = entry.get('index')
             
-            if entry_index:
-                event_descriptions[entry_index] = entry_desc
-            elif entry_name:
+            if entry_desc:
                 event_descriptions[entry_name] = entry_desc
+            else:
+                event_descriptions[entry_name] = entry_name
         
         # Replace event names with descriptions in group
         for event in group:
@@ -862,125 +998,6 @@ class ZenithAnalyser:
             "mean_dispersal_all_minutes": total_dispersal / (len(group) - 1) if len(group) > 1 else 0,
             "events": list(event_metrics.keys())
         }
-    
-    def target_description(self, target_name: str) -> Dict[str, Any]:
-        """
-        Get a detailed description of a target and its laws.
-        
-        Args:
-            target_name: Target name
-        
-        Returns:
-            Detailed target description
-        
-        Raises:
-            ZenithAnalyserError: If target not found
-        """
-        if target_name not in self.target_analyser.targets:
-            raise ZenithAnalyserError(f"Target '{target_name}' not found", target_name=target_name)
-        
-        # Get all laws for this target
-        target_laws = self.target_analyser.extract_laws_for_target(target_name)
-        
-        if not target_laws:
-            raise ZenithAnalyserError(
-                f"Target '{target_name}' has no laws to analyze",
-                target_name=target_name
-            )
-        
-        # Get target data
-        target_data = self.target_analyser.get_target(target_name)
-        
-        # Simulate all events from all laws
-        all_events = []
-        
-        for law_name, law_data in target_laws.items():
-            law_desc = self.law_description_data(law_name, law_data)
-            
-            for event in law_desc.get('simulation', []):
-                all_events.append({
-                    "law_name": law_name,
-                    "event_name": event["event_name"],
-                    "start_datetime": event["start"],
-                    "end_datetime": event["end"],
-                    "duration_minutes": event["duration_minutes"]
-                })
-        
-        # Sort events by start time
-        all_events.sort(key=lambda x: parse_datetime(
-            x["start_datetime"]["date"],
-            x["start_datetime"]["time"]
-        ))
-        
-        # Create merged law data for analysis
-        if not all_events:
-            raise ZenithAnalyserError(
-                f"No events found for target '{target_name}'",
-                target_name=target_name
-            )
-        
-        # Use first event as reference
-        first_event = all_events[0]
-        start_dt = parse_datetime(
-            first_event["start_datetime"]["date"],
-            first_event["start_datetime"]["time"]
-        )
-        
-        # Create merged group
-        merged_group = []
-        
-        for i, event in enumerate(all_events):
-            event_dt = parse_datetime(
-                event["start_datetime"]["date"],
-                event["start_datetime"]["time"]
-            )
-            event_end_dt = parse_datetime(
-                event["end_datetime"]["date"],
-                event["end_datetime"]["time"]
-            )
-            
-            # Calculate coherence (event duration)
-            coherence_minutes = calculate_duration(event_dt, event_end_dt)
-            
-            # Calculate dispersal (gap until next event)
-            dispersal_minutes = 0
-            if i < len(all_events) - 1:
-                next_event = all_events[i + 1]
-                next_event_dt = parse_datetime(
-                    next_event["start_datetime"]["date"],
-                    next_event["start_datetime"]["time"]
-                )
-                dispersal_minutes = calculate_duration(event_end_dt, next_event_dt)
-            
-            merged_group.append({
-                "name": event["event_name"],
-                "chronocoherence": minutes_to_point(coherence_minutes),
-                "chronodispersal": minutes_to_point(dispersal_minutes)
-            })
-        
-        # Create merged law data
-        merged_law_data = {
-            "name": f"merged_{target_name}",
-            "date": first_event["start_datetime"]["date"],
-            "time": first_event["start_datetime"]["time"],
-            "period": minutes_to_point(
-                calculate_duration(
-                    start_dt,
-                    parse_datetime(
-                        all_events[-1]["end_datetime"]["date"],
-                        all_events[-1]["end_datetime"]["time"]
-                    )
-                )
-            ),
-            "dictionnary": [
-                {"name": event["event_name"], "description": event["event_name"]}
-                for event in all_events
-            ],
-            "group": merged_group
-        }
-        
-        # Analyze merged law
-        return self.law_description_data(target_name, merged_law_data)
     
     def population_description(self, population: int = -1) -> Dict[str, Any]:
         """
