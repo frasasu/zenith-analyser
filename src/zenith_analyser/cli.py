@@ -62,7 +62,7 @@ def create_parser() -> argparse.ArgumentParser:
     """Create argument parser."""
     parser = argparse.ArgumentParser(
         description="Zenith Analyser - Analyze structured temporal laws",
-        epilog="See https://github.com/yourusername/zenith-analyser for more information."
+        epilog="See https://github.com/frasasu/zenith-analyser for more information."
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Command to execute')
