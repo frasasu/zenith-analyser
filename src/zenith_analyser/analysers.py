@@ -994,8 +994,8 @@ class ZenithAnalyser:
             "simulation": simulation,
             "event_metrics": formatted_metrics,
             "dispersion_metrics": formatted_dispersion,
-            "mean_coherence_all_minutes": total_coherence / len(group) if group else 0,
-            "mean_dispersal_all_minutes": total_dispersal / (len(group) - 1) if len(group) > 1 else 0,
+            "mean_coherence_all_minutes":int( total_coherence / len(group) if group else 0),
+            "mean_dispersal_all_minutes": int(total_dispersal / (len(group) - 1) if len(group) > 1 else 0),
             "events": list(event_metrics.keys())
         }
     
