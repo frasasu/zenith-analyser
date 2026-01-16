@@ -884,7 +884,7 @@ class ZenithAnalyser:
                     "event_name": event['name'],
                     "start": format_datetime(current_time),
                     "end": format_datetime(event_end),
-                    "duration_minutes": coherence
+                    "duration_minutes": int(coherence)
                 })
                 
                 current_time = event_end
@@ -931,10 +931,10 @@ class ZenithAnalyser:
             formatted_metrics.append({
                 "name": event_name,
                 "count": count,
-                "total_coherence_minutes": metrics["total_coherence"],
-                "total_dispersal_minutes": metrics["total_dispersal"],
-                "mean_coherence_minutes": metrics["total_coherence"] / count if count > 0 else 0,
-                "mean_dispersal_minutes": metrics["total_dispersal"] / count if count > 0 else 0
+                "total_coherence_minutes": int(metrics["total_coherence"]),
+                "total_dispersal_minutes": int(metrics["total_dispersal"]),
+                "mean_coherence_minutes": int(metrics["total_coherence"] / count if count > 0 else 0),
+                "mean_dispersal_minutes": int(metrics["total_dispersal"] / count if count > 0 else 0)
             })
         
         # Calculate dispersion (time between occurrences of same event)
@@ -964,14 +964,14 @@ class ZenithAnalyser:
                     dispersions.append(dispersion_time)
                 
                 dispersion_metrics[event_name] = {
-                    "mean_dispersion_minutes": sum(dispersions) / len(dispersions) if dispersions else 0,
+                    "mean_dispersion_minutes": int(sum(dispersions) / len(dispersions) if dispersions else 0),
                     "dispersion_count": len(dispersions)
                 }
         
         formatted_dispersion = [
             {
                 "name": event_name,
-                "mean_dispersion_minutes": metrics["mean_dispersion_minutes"],
+                "mean_dispersion_minutes": int(metrics["mean_dispersion_minutes"]),
                 "dispersion_count": metrics["dispersion_count"]
             }
             for event_name, metrics in dispersion_metrics.items()
@@ -1055,7 +1055,7 @@ class ZenithAnalyser:
                         "event_name": event["event_name"],
                         "start_datetime": event["start"],
                         "end_datetime": event["end"],
-                        "duration_minutes": event["duration_minutes"]
+                        "duration_minutes": int(event["duration_minutes"])
                     })
             except ZenithAnalyserError as e:
                 law_descriptions[law_name] = {"error": str(e)}
