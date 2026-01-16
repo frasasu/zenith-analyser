@@ -4,18 +4,42 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zenith-analyser"
-version = "0.1.0"  
-description = "A library for analyzing structured temporal laws"  # Description du dépôt
-authors = [
-    {name = "frasasu"}  
-]
-readme = "README.md" 
+version = "1.0.0"  # Aligné sur ta release PyPI, change pour les prochaines versions
+description = "A library for analyzing structured temporal laws"
+readme = "README.md"
+authors = [{ name = "Francois TUMUSAVYEYESU", email = "frasasudev@gmail.com" }]
 requires-python = ">=3.8"
-dependencies = []  
+license = { file = "LICENSE" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+]
+keywords = ["temporal", "chronology", "dsl", "parser", "analysis", "simulation"]
+dependencies = []  # Ajoute ici si tu as des runtime deps externes plus tard
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    # Tu peux ajouter pre-commit, mypy, etc. si besoin
+]
+
+[project.scripts]
+zenith = "zenith_analyser.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Indispensable pour le src layout
+namespaces = false
 
 [tool.black]
 line-length = 88
 target-version = ['py38']
-
-[project.scripts]
-zenith = "zenith_analyser.cli:main"
