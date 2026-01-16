@@ -2,6 +2,17 @@
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "zenith-analyser"
+version = "0.1.0"  
+description = "A library for analyzing structured temporal laws"  # Description du dépôt
+authors = [
+    {name = "frasasu"}  
+]
+readme = "README.md" 
+requires-python = ">=3.8"
+dependencies = []  
+
 [tool.black]
 line-length = 88
 target-version = ['py38']
