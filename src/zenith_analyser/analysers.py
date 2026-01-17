@@ -20,7 +20,6 @@ Contains LawAnalyser, TargetAnalyser, and ZenithAnalyser classes.
 """
 
 import copy
-import math
 import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Any, Optional, Set, Union
@@ -30,10 +29,7 @@ from .utils import (
     minutes_to_point,
     parse_datetime,
     format_datetime,
-    calculate_duration,
     add_minutes_to_datetime,
-    deep_merge_dicts,
-    safe_get
 )
 from .exceptions import (
     ZenithAnalyserError,

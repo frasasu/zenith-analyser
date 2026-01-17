@@ -111,7 +111,7 @@ def minutes_to_point(total_minutes: Union[int, float]) -> str:
         raise ZenithTimeError(f"Total minutes must be a number, got {type(total_minutes)}")
     
     if math.isnan(total_minutes) or math.isinf(total_minutes):
-        raise ZenithTimeError(f"Total minutes cannot be NaN or infinite")
+        raise ZenithTimeError("Total minutes cannot be NaN or infinite")
     
     # Handle negative values
     if total_minutes < 0:
