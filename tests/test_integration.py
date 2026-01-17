@@ -15,17 +15,18 @@
 Integration tests for Zenith Analyser.
 """
 
-import pytest
 import json
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 
+import pytest
+
 from src.zenith_analyser import (
-    ZenithAnalyser,
     ASTUnparser,
     Validator,
-    ZenithAnalyserError
+    ZenithAnalyser,
+    ZenithAnalyserError,
 )
 
 
@@ -34,105 +35,110 @@ def test_full_workflow(sample_code):
     """Test complete workflow from code to analysis."""
     # 1. Create analyser
     analyser = ZenithAnalyser(sample_code)
-    
+
     # 2. Validate no errors in parsing
     assert len(analyser.parser_errors) == 0
-    
+
     # 3. Get corpus statistics
     analysis = analyser.analyze_corpus()
-    assert analysis['validation']['lexer'] is True
-    assert analysis['validation']['parser'] is True
-    assert analysis['validation']['ast'] is True
-    
+    assert analysis["validation"]["lexer"] is True
+    assert analysis["validation"]["parser"] is True
+    assert analysis["validation"]["ast"] is True
+
     # 4. Analyze specific law
-    law_desc = analyser.law_description('test_law')
-    assert law_desc['name'] == 'test_law'
-    assert law_desc['total_duration_minutes'] > 0
-    
+    law_desc = analyser.law_description("test_law")
+    assert law_desc["name"] == "test_law"
+    assert law_desc["total_duration_minutes"] > 0
+
     # 5. Analyze specific target
-    target_desc = analyser.target_description('test_target')
-    assert 'event_metrics' in target_desc
-    
+    target_desc = analyser.target_description("test_target")
+    assert "event_metrics" in target_desc
+
     # 6. Test unparse
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
     assert len(unparsed) > 0
-    
+
     # 7. Parse unparsed code
     analyser2 = ZenithAnalyser(unparsed)
     assert len(analyser2.parser_errors) == 0
-    
+
     # 8. Compare key elements
-    law_desc2 = analyser2.law_description('test_law')
-    assert law_desc2['name'] == 'test_law'
+    law_desc2 = analyser2.law_description("test_law")
+    assert law_desc2["name"] == "test_law"
     # Allow small differences in time calculations
-    assert abs(law_desc['total_duration_minutes'] - law_desc2['total_duration_minutes']) <= 1
+    assert (
+        abs(law_desc["total_duration_minutes"] - law_desc2["total_duration_minutes"])
+        <= 1
+    )
 
 
 @pytest.mark.integration
 def test_complex_hierarchy_workflow(complex_code):
     """Test workflow with complex hierarchy."""
     analyser = ZenithAnalyser(complex_code)
-    
+
     # Check all components are present
-    assert 'parent' in analyser.target_analyser.targets
-    assert 'child' in analyser.target_analyser.targets
-    assert 'parent_law' in analyser.law_analyser.laws
-    assert 'child_law' in analyser.law_analyser.laws
-    
+    assert "parent" in analyser.target_analyser.targets
+    assert "child" in analyser.target_analyser.targets
+    assert "parent_law" in analyser.law_analyser.laws
+    assert "child_law" in analyser.law_analyser.laws
+
     # Test population analysis
     for population in [1, 2, -1]:
         pop_desc = analyser.population_description(population)
-        assert pop_desc['population_stats']['population_level'] == (2 if population == -1 else population)
-        assert pop_desc['population_stats']['total_laws'] > 0
-    
+        assert pop_desc["population_stats"]["population_level"] == (
+            2 if population == -1 else population
+        )
+        assert pop_desc["population_stats"]["total_laws"] > 0
+
     # Test target hierarchy
-    hierarchy = analyser.target_analyser.get_target_hierarchy('child')
-    assert hierarchy['parent'] == 'parent'
-    assert hierarchy['depth'] == 2
-    assert 'child_law' in hierarchy['direct_laws']
-    assert 'parent_law' in hierarchy['descendant_laws']
-    
+    hierarchy = analyser.target_analyser.get_target_hierarchy("child")
+    assert hierarchy["parent"] == "parent"
+    assert hierarchy["depth"] == 2
+    assert "child_law" in hierarchy["direct_laws"]
+    assert "parent_law" in hierarchy["descendant_laws"]
+
     # Test dictionary inheritance
-    child_laws = analyser.target_analyser.extract_laws_for_target('child')
-    assert 'child_law' in child_laws
+    child_laws = analyser.target_analyser.extract_laws_for_target("child")
+    assert "child_law" in child_laws
     # Check that event description is from child's dictionary
-    event_desc = child_laws['child_law']['dictionnary'][0]['description']
-    assert event_desc == 'Child event'
+    event_desc = child_laws["child_law"]["dictionnary"][0]["description"]
+    assert event_desc == "Child event"
 
 
 @pytest.mark.integration
 def test_file_io_workflow(sample_code, temp_file, temp_json_file):
     """Test file input/output workflow."""
     # 1. Write code to file
-    with open(temp_file, 'w', encoding='utf-8') as f:
+    with open(temp_file, "w", encoding="utf-8") as f:
         f.write(sample_code)
-    
+
     # 2. Read and analyze
-    with open(temp_file, 'r', encoding='utf-8') as f:
+    with open(temp_file, "r", encoding="utf-8") as f:
         code = f.read()
-    
+
     analyser = ZenithAnalyser(code)
-    
+
     # 3. Export to JSON
     analyser.export_json(temp_json_file)
-    
+
     # 4. Verify JSON
-    with open(temp_json_file, 'r', encoding='utf-8') as f:
+    with open(temp_json_file, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
-    assert 'corpus_statistics' in data
-    assert 'laws' in data
-    assert 'targets' in data
-    
+
+    assert "corpus_statistics" in data
+    assert "laws" in data
+    assert "targets" in data
+
     # 5. Unparse from AST and write back
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
-    unparsed_file = temp_file + '.unparsed'
-    with open(unparsed_file, 'w', encoding='utf-8') as f:
+
+    unparsed_file = temp_file + ".unparsed"
+    with open(unparsed_file, "w", encoding="utf-8") as f:
         f.write(unparsed)
-    
+
     # Cleanup
     if os.path.exists(unparsed_file):
         os.unlink(unparsed_file)
@@ -155,13 +161,13 @@ target also_good:
     key:"also good"
 end_target
 """
-    
+
     # Should raise error during initialization
     with pytest.raises(Exception):
         analyser = ZenithAnalyser(code_with_error)
-    
+
     # Test with recoverable error (partial code)
-    partial_code = "target partial:\n    key:\"test\"\n"
+    partial_code = 'target partial:\n    key:"test"\n'
     # Note: This is incomplete, should fail parsing
     with pytest.raises(Exception):
         analyser = ZenithAnalyser(partial_code)
@@ -171,60 +177,59 @@ end_target
 def test_performance_workflow():
     """Test performance of complete workflow."""
     import time
-    
+
     # Create moderately large code
     code_parts = []
-    code_parts.append("target performance_test:\n    key:\"test\"\n    dictionnary:")
-    
+    code_parts.append('target performance_test:\n    key:"test"\n    dictionnary:')
+
     # Add 100 dictionary entries
     for i in range(100):
         code_parts.append(f'        ev{i}:"Event {i}"')
-    
+
     code_parts.append("")
-    
+
     # Add 50 laws
     for i in range(50):
-        code_parts.append(f"""    law law_{i}:
+        code_parts.append(
+            f"""    law law_{i}:
         start_date:2024-01-{i+1:02d} at 10:00
         period:1.0
         Event:
             A[ev{i % 100}]:"Description {i}"
         GROUP:(A 1.0^0)
-    end_law""")
-    
+    end_law"""
+        )
+
     code_parts.append("end_target")
     code = "\n".join(code_parts)
-    
+
     # Time the analysis
     start_time = time.time()
     analyser = ZenithAnalyser(code)
     parse_time = time.time() - start_time
-    
+
     # Should complete in reasonable time
     assert parse_time < 5.0, f"Parsing took too long: {parse_time:.2f}s"
-    
+
     # Time corpus analysis
     start_time = time.time()
     analysis = analyser.analyze_corpus()
     analysis_time = time.time() - start_time
-    
+
     assert analysis_time < 2.0, f"Analysis took too long: {analysis_time:.2f}s"
-    
+
     # Verify results
-    assert analysis['corpus_statistics']['total_laws'] == 50
-    assert analysis['corpus_statistics']['total_targets'] == 1
+    assert analysis["corpus_statistics"]["total_laws"] == 50
+    assert analysis["corpus_statistics"]["total_targets"] == 1
 
 
 @pytest.mark.integration
 def test_cli_simulation():
     """Simulate CLI workflow programmatically."""
-    from src.zenith_analyser.cli import (
-        analyze_command,
-        validate_command,
-        format_output
-    )
     import argparse
-    
+
+    from src.zenith_analyser.cli import analyze_command, format_output, validate_command
+
     # Test code
     code = """
 target cli_test:
@@ -238,38 +243,38 @@ target cli_test:
     end_law
 end_target
 """
-    
+
     # Create temporary file
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.zenith') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".zenith") as f:
         f.write(code)
         temp_path = f.name
-    
+
     try:
         # Test validation
         class Args:
             def __init__(self):
                 self.input = temp_path
                 self.strict = False
-        
+
         args = Args()
-        
+
         # This would call validate_command, but we need to mock stdin/stdout
         # Instead, test the components directly
         validator = Validator()
         errors = validator.validate_code(code)
         assert len(errors) == 0
-        
+
         # Test analysis
         analyser = ZenithAnalyser(code)
         result = analyser.analyze_corpus()
-        
+
         # Test formatting
-        json_output = format_output(result, 'json', True)
+        json_output = format_output(result, "json", True)
         assert '"corpus_statistics"' in json_output
-        
-        text_output = format_output(result, 'text', False)
-        assert 'Corpus Statistics:' in text_output
-        
+
+        text_output = format_output(result, "text", False)
+        assert "Corpus Statistics:" in text_output
+
     finally:
         # Cleanup
         if os.path.exists(temp_path):
@@ -285,7 +290,7 @@ target fidelity_test:
     dictionnary:
         work:"Work activity"
         break:"Break time"
-    
+
     law daily:
         start_date:2024-01-01 at 09:00
         period:8.0
@@ -297,40 +302,40 @@ target fidelity_test:
     end_law
 end_target
 """
-    
+
     # Parse
     analyser1 = ZenithAnalyser(code)
-    law_desc1 = analyser1.law_description('daily')
-    
+    law_desc1 = analyser1.law_description("daily")
+
     # Unparse
     unparser = ASTUnparser(analyser1.ast)
     unparsed = unparser.unparse()
-    
+
     # Parse again
     analyser2 = ZenithAnalyser(unparsed)
-    law_desc2 = analyser2.law_description('daily')
-    
+    law_desc2 = analyser2.law_description("daily")
+
     # Compare key metrics (allow small floating point differences)
     metrics1 = [
-        law_desc1['total_duration_minutes'],
-        law_desc1['coherence_total_minutes'],
-        law_desc1['dispersal_total_minutes'],
-        len(law_desc1['simulation'])
+        law_desc1["total_duration_minutes"],
+        law_desc1["coherence_total_minutes"],
+        law_desc1["dispersal_total_minutes"],
+        len(law_desc1["simulation"]),
     ]
-    
+
     metrics2 = [
-        law_desc2['total_duration_minutes'],
-        law_desc2['coherence_total_minutes'],
-        law_desc2['dispersal_total_minutes'],
-        len(law_desc2['simulation'])
+        law_desc2["total_duration_minutes"],
+        law_desc2["coherence_total_minutes"],
+        law_desc2["dispersal_total_minutes"],
+        len(law_desc2["simulation"]),
     ]
-    
+
     for m1, m2 in zip(metrics1, metrics2):
         assert abs(m1 - m2) <= 1, f"Metric mismatch: {m1} vs {m2}"
-    
+
     # Compare event names and order
-    events1 = [e['event_name'] for e in law_desc1['simulation']]
-    events2 = [e['event_name'] for e in law_desc2['simulation']]
+    events1 = [e["event_name"] for e in law_desc1["simulation"]]
+    events2 = [e["event_name"] for e in law_desc2["simulation"]]
     assert events1 == events2
 
 
@@ -341,8 +346,9 @@ def test_error_handling_integration():
         # (code, should_fail, error_contains)
         ("", True, "empty"),
         ("invalid syntax", True, "Unexpected character"),
-        ("target test: key:\"value\"", True, "end_target"),  # Missing end_target
-        ("""
+        ('target test: key:"value"', True, "end_target"),  # Missing end_target
+        (
+            """
 target test:
     key:"value"
     law invalid:
@@ -353,9 +359,12 @@ target test:
         GROUP:(A x^y)
     end_law
 end_target
-""", True, "Invalid"),  # Various invalid values
+""",
+            True,
+            "Invalid",
+        ),  # Various invalid values
     ]
-    
+
     for code, should_fail, error_contains in test_cases:
         if should_fail:
             with pytest.raises(Exception) as exc_info:
@@ -374,55 +383,61 @@ def test_memory_usage():
     """Test memory usage doesn't explode."""
     import sys
     import tracemalloc
-    
+
     # Create large code
-    code_lines = ["target large:\n    key:\"test\"\n    dictionnary:"]
-    
+    code_lines = ['target large:\n    key:"test"\n    dictionnary:']
+
     # Add many dictionary entries
     for i in range(1000):
         code_lines.append(f'        e{i}:"Event {i}"')
-    
+
     code_lines.append("")
-    
+
     # Add many simple laws
     for i in range(100):
-        code_lines.append(f"""    law l{i}:
+        code_lines.append(
+            f"""    law l{i}:
         start_date:2024-01-01 at 10:00
         period:1.0
         Event:
             A[e{i % 1000}]:"Description"
         GROUP:(A 1.0^0)
-    end_law""")
-    
+    end_law"""
+        )
+
     code_lines.append("end_target")
     code = "\n".join(code_lines)
-    
+
     # Start tracking memory
     tracemalloc.start()
-    
+
     try:
         # Create analyser
         snapshot1 = tracemalloc.take_snapshot()
         analyser = ZenithAnalyser(code)
         snapshot2 = tracemalloc.take_snapshot()
-        
+
         # Calculate memory increase
-        stats = snapshot2.compare_to(snapshot1, 'lineno')
+        stats = snapshot2.compare_to(snapshot1, "lineno")
         total_increase = sum(stat.size_diff for stat in stats if stat.size_diff > 0)
-        
+
         # Memory increase should be reasonable (< 50MB for this test)
-        assert total_increase < 50 * 1024 * 1024, f"Memory increased by {total_increase / (1024*1024):.1f}MB"
-        
+        assert (
+            total_increase < 50 * 1024 * 1024
+        ), f"Memory increased by {total_increase / (1024*1024):.1f}MB"
+
         # Perform analysis
         snapshot3 = tracemalloc.take_snapshot()
         analysis = analyser.analyze_corpus()
         snapshot4 = tracemalloc.take_snapshot()
-        
-        stats = snapshot4.compare_to(snapshot3, 'lineno')
+
+        stats = snapshot4.compare_to(snapshot3, "lineno")
         analysis_increase = sum(stat.size_diff for stat in stats if stat.size_diff > 0)
-        
+
         # Analysis memory should also be reasonable
-        assert analysis_increase < 10 * 1024 * 1024, f"Analysis memory increased by {analysis_increase / (1024*1024):.1f}MB"
-        
+        assert (
+            analysis_increase < 10 * 1024 * 1024
+        ), f"Analysis memory increased by {analysis_increase / (1024*1024):.1f}MB"
+
     finally:
         tracemalloc.stop()

@@ -1,4 +1,4 @@
-# zenith_analyser 
+# zenith_analyser
 # Zenith Analyser
 
 [![PyPI version](https://badge.fury.io/py/zenith-analyser.svg)](https://pypi.org/project/zenith-analyser/)

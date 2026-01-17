@@ -1,4 +1,4 @@
- 
+
 ---
 
 ## **Fichier 7: .github/PULL_REQUEST_TEMPLATE.md**

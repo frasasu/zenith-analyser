@@ -1,4 +1,4 @@
-# Benchmarks 
+# Benchmarks
 # Zenith Analyser Benchmarks
 
 This directory contains performance and memory benchmarks for Zenith Analyser.

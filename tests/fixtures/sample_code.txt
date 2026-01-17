@@ -6,7 +6,7 @@ target comprehensive_example:
         testing:"Quality assurance"
         deployment:"Production deployment"
         meeting:"Team coordination"
-    
+
     law project_kickoff:
         start_date:2024-01-02 at 09:00
         period:4.0
@@ -15,14 +15,14 @@ target comprehensive_example:
             requirements[planning]:"Requirements gathering"
         GROUP:(kickoff 2.0^0.30 - requirements 1.30^0)
     end_law
-    
+
     target development_phase:
         key:"Development work"
         dictionnary:
             frontend[development]:"User interface development"
             backend[development]:"Server-side logic"
             database[development]:"Database design"
-        
+
         law sprint_1:
             start_date:2024-01-03 at 09:00
             period:40.0
@@ -32,7 +32,7 @@ target comprehensive_example:
                 schema[database]:"Database schema design"
             GROUP:(ui 15.0^1.0 - api 20.0^1.0 - schema 4.0^0)
         end_law
-        
+
         law sprint_2:
             start_date:2024-01-10 at 09:00
             period:40.0
@@ -43,7 +43,7 @@ target comprehensive_example:
             GROUP:(ui 10.0^1.0 - api 15.0^1.0 - integration 14.0^0)
         end_law
     end_target
-    
+
     law testing_phase:
         start_date:2024-01-17 at 09:00
         period:24.0
@@ -53,7 +53,7 @@ target comprehensive_example:
             user[testing]:"User acceptance testing"
         GROUP:(unit 8.0^1.0 - integration 10.0^1.0 - user 5.0^0)
     end_law
-    
+
     law deployment:
         start_date:2024-01-19 at 14:00
         period:4.0
@@ -63,7 +63,7 @@ target comprehensive_example:
             verification[deployment]:"Post-deployment verification"
         GROUP:(staging 1.0^0.30 - production 1.0^0.30 - verification 1.0^0)
     end_law
-    
+
     law retrospective:
         start_date:2024-01-19 at 16:00
         period:2.0

@@ -2,19 +2,20 @@
 Pytest configuration and fixtures for Zenith Analyser tests.
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
 
+import pytest
+
 from src.zenith_analyser import (
-    ZenithAnalyser,
+    ASTUnparser,
+    LawAnalyser,
     Lexer,
     Parser,
-    LawAnalyser,
     TargetAnalyser,
-    ASTUnparser,
-    Validator
+    Validator,
+    ZenithAnalyser,
 )
 
 
@@ -27,7 +28,7 @@ target test_target:
     dictionnary:
         ev1:"Test event 1"
         ev2:"Test event 2"
-    
+
     law test_law:
         start_date:2024-01-01 at 10:00
         period:1.0
@@ -48,12 +49,12 @@ target parent:
     key:"Parent key"
     dictionnary:
         base:"Base event"
-    
+
     target child:
         key:"Child key"
         dictionnary:
             derived[base]:"Derived event"
-        
+
         law child_law:
             start_date:2024-01-01 at 09:00
             period:2.0
@@ -62,7 +63,7 @@ target parent:
             GROUP:(X 2.0^0)
         end_law
     end_target
-    
+
     law parent_law:
         start_date:2024-01-01 at 14:00
         period:1.0
@@ -97,7 +98,7 @@ def parser(sample_code):
 @pytest.fixture
 def temp_file():
     """Create a temporary file for testing."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.zenith') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".zenith") as f:
         yield f.name
     # Cleanup
     if os.path.exists(f.name):
@@ -107,7 +108,7 @@ def temp_file():
 @pytest.fixture
 def temp_json_file():
     """Create a temporary JSON file for testing."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
         yield f.name
     # Cleanup
     if os.path.exists(f.name):
@@ -130,21 +131,11 @@ def population_level(request):
 def pytest_configure(config):
     """Register custom markers."""
     config.addinivalue_line(
-        "markers",
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers",
-        "integration: integration tests"
-    )
-    config.addinivalue_line(
-        "markers",
-        "benchmark: benchmark tests"
-    )
-    config.addinivalue_line(
-        "markers",
-        "security: security tests"
-    )
+    config.addinivalue_line("markers", "integration: integration tests")
+    config.addinivalue_line("markers", "benchmark: benchmark tests")
+    config.addinivalue_line("markers", "security: security tests")
 
 
 # Test data
@@ -154,11 +145,7 @@ SAMPLE_LAWS = [
         "date": "2024-01-01",
         "time": "10:00",
         "period": "1.0",
-        "events": [
-            {"name": "A", "description": "Event A"}
-        ],
-        "group": [
-            {"name": "A", "chronocoherence": "1.0", "chronodispersal": "0"}
-        ]
+        "events": [{"name": "A", "description": "Event A"}],
+        "group": [{"name": "A", "chronocoherence": "1.0", "chronodispersal": "0"}],
     }
 ]

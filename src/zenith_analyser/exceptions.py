@@ -16,20 +16,21 @@
 Custom exceptions for Zenith Analyser.
 """
 
+
 class ZenithError(Exception):
     """Base exception for all Zenith Analyser errors."""
-    
+
     def __init__(self, message: str):
         super().__init__(message)
         self.message = message
-    
+
     def __str__(self) -> str:
         return f"ZenithError: {self.message}"
 
 
 class ZenithLexerError(ZenithError):
     """Exception raised during lexical analysis."""
-    
+
     def __init__(self, message: str, line: int = None, column: int = None):
         self.line = line
         self.column = column
@@ -40,20 +41,20 @@ class ZenithLexerError(ZenithError):
 
 class ZenithParserError(ZenithError):
     """Exception raised during parsing."""
-    
+
     def __init__(self, message: str, token: dict = None):
         self.token = token
         if token:
-            line = token.get('line', '?')
-            col = token.get('col', '?')
-            value = token.get('value', '')
+            line = token.get("line", "?")
+            col = token.get("col", "?")
+            value = token.get("value", "")
             message = f"Parsing error at line {line}, column {col} (token: '{value}'): {message}"
         super().__init__(message)
 
 
 class ZenithAnalyserError(ZenithError):
     """Exception raised during analysis."""
-    
+
     def __init__(self, message: str, law_name: str = None, target_name: str = None):
         self.law_name = law_name
         self.target_name = target_name
@@ -66,7 +67,7 @@ class ZenithAnalyserError(ZenithError):
 
 class ZenithValidationError(ZenithError):
     """Exception raised during validation."""
-    
+
     def __init__(self, message: str, validation_type: str = None):
         self.validation_type = validation_type
         if validation_type:
@@ -76,19 +77,23 @@ class ZenithValidationError(ZenithError):
 
 class ZenithConfigurationError(ZenithError):
     """Exception raised for configuration errors."""
+
     pass
 
 
 class ZenithRuntimeError(ZenithError):
     """Exception raised for runtime errors."""
+
     pass
 
 
 class ZenithLimitError(ZenithError):
     """Exception raised when limits are exceeded."""
-    
+
     def __init__(self, limit_type: str, limit_value: int, actual_value: int):
-        message = f"{limit_type} limit exceeded: limit={limit_value}, actual={actual_value}"
+        message = (
+            f"{limit_type} limit exceeded: limit={limit_value}, actual={actual_value}"
+        )
         self.limit_type = limit_type
         self.limit_value = limit_value
         self.actual_value = actual_value
@@ -97,7 +102,7 @@ class ZenithLimitError(ZenithError):
 
 class ZenithTimeError(ZenithError):
     """Exception raised for time-related errors."""
-    
+
     def __init__(self, message: str, time_value: str = None):
         self.time_value = time_value
         if time_value:

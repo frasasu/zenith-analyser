@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 ### 53. **scripts/setup_environment.sh**
 ```bash

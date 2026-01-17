@@ -52,16 +52,16 @@ jobs:
           import zipfile
           import sys
           import glob
-          
+
           # Find wheel file
           wheels = glob.glob('dist/*.whl')
           if not wheels:
               print('❌ No wheel files found in dist/')
               sys.exit(1)
-          
+
           wheel_path = wheels[0]
           print(f'Checking wheel: {wheel_path}')
-          
+
           try:
               with zipfile.ZipFile(wheel_path) as zf:
                   files = zf.namelist()
@@ -71,23 +71,23 @@ jobs:
                       'zenith_analyser/parser.py',
                       'zenith_analyser/analysers.py'
                   ]
-                  
+
                   missing_files = []
                   for req in required:
                       if not any(req in f for f in files):
                           missing_files.append(req)
-                  
+
                   if missing_files:
                       print(f'❌ Missing required files: {missing_files}')
                       sys.exit(1)
-                  
+
                   print('✅ Wheel structure is correct')
                   print(f'Total files in wheel: {len(files)}')
                   print('Package files found:')
                   zenith_files = [f for f in files if 'zenith_analyser' in f]
                   for f in sorted(zenith_files)[:15]:  # Show first 15 files
                       print(f'  {f}')
-                      
+
           except Exception as e:
               print(f'❌ Error checking wheel: {e}')
               sys.exit(1)
@@ -145,35 +145,35 @@ jobs:
         id: generate_release_notes
         run: |
           VERSION="${{ steps.get_version_direct.outputs.VERSION }}"
-          
+
           # Create Python script to extract release notes
           python << 'EOF'
           import re
           import sys
-          
+
           version = sys.argv[1] if len(sys.argv) > 1 else ""
-          
+
           try:
               with open('CHANGELOG.md', 'r', encoding='utf-8') as f:
                   lines = f.readlines()
-              
+
               found_version = False
               release_notes = []
-              
+
               for line in lines:
                   # Look for version header
                   if re.match(rf'^##\s+\[{re.escape(version)}\]', line.strip()):
                       found_version = True
                       continue
-                  
+
                   # Stop at next version header
                   if found_version and line.strip().startswith('## '):
                       break
-                  
+
                   # Collect notes
                   if found_version and line.strip():
                       release_notes.append(line.rstrip('\n'))
-              
+
               if release_notes:
                   # Remove empty lines at the beginning
                   while release_notes and not release_notes[0].strip():
@@ -181,18 +181,18 @@ jobs:
                   # Remove empty lines at the end
                   while release_notes and not release_notes[-1].strip():
                       release_notes.pop(-1)
-                  
+
                   output = '\n'.join(release_notes)
                   print(output)
               else:
                   print(f"## Release {version}")
                   print("\nPlease see CHANGELOG.md for details.")
-                  
+
           except Exception as e:
               print(f"## Release {version}")
               print(f"\nError extracting release notes: {e}")
           EOF "$VERSION" > release_notes.txt
-          
+
           # Create release body
           echo "## What's Changed" > release_body.md
           echo "" >> release_body.md
@@ -239,7 +239,7 @@ jobs:
         run: |
           VERSION="${{ steps.get_version_for_notify.outputs.VERSION }}"
           REPO="${{ github.repository }}"
-          
+
           echo "=========================================="
           echo "✅ Release v$VERSION published successfully!"
           echo "=========================================="
