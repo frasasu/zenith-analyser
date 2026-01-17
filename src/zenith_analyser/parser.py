@@ -18,8 +18,7 @@ Parser for the Zenith language.
 Transforms tokens into an Abstract Syntax Tree (AST).
 """
 
-import copy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import ZenithParserError
 from .utils import validate_identifier
@@ -101,7 +100,8 @@ class Parser:
                 ast["elements"].append(target_node)
             else:
                 self._error(
-                    f"Expected 'law' or 'target', got '{token['type']}' ({token['value']})",
+                    f"Expected 'law' or 'target', got '{token['type']}' "
+                    f"({token['value']})",
                     token,
                 )
 
@@ -274,7 +274,8 @@ class Parser:
                 blocks.append(target_node)
             else:
                 self._error(
-                    f"Expected 'law' or 'target' in target block, got '{token['type']}'",
+                    f"Expected 'law' or 'target' in target block, "
+                    f"got '{token['type']}'",
                     token,
                 )
 
@@ -424,7 +425,8 @@ class Parser:
 
         if token["type"] not in expected_types:
             self._error(
-                f"Expected one of {expected_types}, got {token['type']} ({token['value']})",
+                f"Expected one of {expected_types}, "
+                f"got {token['type']} ({token['value']})",
                 token,
             )
 

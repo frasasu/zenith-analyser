@@ -48,14 +48,22 @@ class ZenithParserError(ZenithError):
             line = token.get("line", "?")
             col = token.get("col", "?")
             value = token.get("value", "")
-            message = f"Parsing error at line {line}, column {col} (token: '{value}'): {message}"
+            message = (
+                f"Parsing error at line {line}, column {col} "
+                f"(token: '{value}'): {message}"
+            )
         super().__init__(message)
 
 
 class ZenithAnalyserError(ZenithError):
     """Exception raised during analysis."""
 
-    def __init__(self, message: str, law_name: str = None, target_name: str = None):
+    def __init__(
+        self,
+        message: str,
+        law_name: str = None,
+        target_name: str = None,
+    ):
         self.law_name = law_name
         self.target_name = target_name
         if law_name:
@@ -92,7 +100,8 @@ class ZenithLimitError(ZenithError):
 
     def __init__(self, limit_type: str, limit_value: int, actual_value: int):
         message = (
-            f"{limit_type} limit exceeded: limit={limit_value}, actual={actual_value}"
+            f"{limit_type} limit exceeded: "
+            f"limit={limit_value}, actual={actual_value}"
         )
         self.limit_type = limit_type
         self.limit_value = limit_value

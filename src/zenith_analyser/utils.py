@@ -16,13 +16,13 @@
 Utility functions for Zenith Analyser.
 """
 
-import math
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
+import math
 
 from .constants import DATE_FORMAT, DATETIME_FORMAT, POINT_MULTIPLIERS, TIME_FORMAT
-from .exceptions import ZenithTimeError, ZenithValidationError
+from .exceptions import ZenithTimeError
 
 
 def point_to_minutes(point: str) -> int:
@@ -80,14 +80,14 @@ def point_to_minutes(point: str) -> int:
     max_minutes = 518400 * 100  # 1000 years
     if total_minutes > max_minutes:
         raise ZenithTimeError(
-            f"Duration too large: {total_minutes} minutes ({total_minutes/518400:.1f} years). "
-            f"Check point format: '{point}'"
+            f"Duration too large: {total_minutes} minutes "
+            f"({total_minutes/518400:.1f} years). Check point format: '{point}'"
         )
 
     return -total_minutes if is_negative else total_minutes
 
 
-def minutes_to_point(total_minutes: Union[int, float]) -> str:
+def minutes_to_point(total_minutes: int | float) -> str:
     """
     Convert minutes to a Zenith point (format Y.M.D.H.M).
 
@@ -425,7 +425,8 @@ def validate_zenith_code(code: str) -> List[str]:
 
     if target_count != end_target_count:
         errors.append(
-            f"Mismatched target blocks: {target_count} target vs {end_target_count} end_target"
+            f"Mismatched target blocks: {target_count} target vs "
+            f"{end_target_count} end_target"
         )
 
     # Check for common syntax errors

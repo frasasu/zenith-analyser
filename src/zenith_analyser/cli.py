@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Command Line Interface for Zenith Analyser.
 """
@@ -18,7 +19,6 @@ Command Line Interface for Zenith Analyser.
 import argparse
 import json
 import sys
-from pathlib import Path
 from typing import Optional
 
 from . import ASTUnparser, Validator, ZenithAnalyser

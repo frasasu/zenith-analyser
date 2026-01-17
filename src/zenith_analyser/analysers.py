@@ -19,10 +19,9 @@ Analyzers for Zenith language structures.
 Contains LawAnalyser, TargetAnalyser, and ZenithAnalyser classes.
 """
 
-import copy
-import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple
+import json
 
 from .exceptions import ZenithAnalyserError, ZenithTimeError, ZenithValidationError
 from .utils import (
@@ -97,8 +96,8 @@ class LawAnalyser:
             "date": start_date.get("date"),
             "time": start_date.get("time"),
             "period": contents.get("period"),
-            "dictionnary": copy.deepcopy(contents.get("events", [])),
-            "group": copy.deepcopy(contents.get("group", [])),
+            "dictionnary": contents.get("events", []).copy(),
+            "group": contents.get("group", []).copy(),
             "source_node": law_node,  # Keep reference for debugging
         }
 
@@ -121,7 +120,7 @@ class LawAnalyser:
         Returns:
             Law data or None if not found
         """
-        return copy.deepcopy(self.laws.get(name))
+        return self.laws.get(name).copy() if name in self.laws else None
 
     def validate_law(self, name: str) -> List[str]:
         """
@@ -139,7 +138,6 @@ class LawAnalyser:
 
         errors = []
 
-        # Check required fields
         required = ["date", "time", "period", "dictionnary", "group"]
         for field in required:
             if not law.get(field):
@@ -148,19 +146,16 @@ class LawAnalyser:
         if errors:
             return errors
 
-        # Validate date/time
         try:
             parse_datetime(law["date"], law["time"])
         except ZenithTimeError as e:
             errors.append(str(e))
 
-        # Validate period
         try:
             point_to_minutes(law["period"])
         except ZenithTimeError as e:
             errors.append(f"Invalid period: {str(e)}")
 
-        # Validate dictionnary
         if not isinstance(law["dictionnary"], list):
             errors.append("Dictionnary must be a list")
         else:
@@ -177,10 +172,8 @@ class LawAnalyser:
 
                 if entry_name in seen_names:
                     errors.append(f"Duplicate dictionnary entry: {entry_name}")
-                else:
-                    seen_names.add(entry_name)
+                seen_names.add(entry_name)
 
-        # Validate group
         if not isinstance(law["group"], list):
             errors.append("Group must be a list")
         else:
@@ -238,7 +231,6 @@ class TargetAnalyser:
                 if element.get("type") == "target":
                     self._extract_target_data(element, data_targets, current_path)
 
-                    # Recurse into blocks
                     contents = element.get("contents", {})
                     blocks = contents.get("blocks", [])
                     new_path = current_path + [element["name"]]
@@ -270,17 +262,16 @@ class TargetAnalyser:
         data_targets[name] = {
             "name": name,
             "key": contents.get("key", ""),
-            "dictionnary": copy.deepcopy(contents.get("dictionnary", [])),
+            "dictionnary": contents.get("dictionnary", []).copy(),
             "direct_laws": [],
             "direct_targets": [],
             "all_descendants_laws": set(),
             "all_descendants_targets": set(),
             "path": current_path + [name],
             "depth": len(current_path) + 1,
-            "source_node": target_node,  # Keep reference for debugging
+            "source_node": target_node,
         }
 
-        # Extract direct laws and targets from blocks
         blocks = contents.get("blocks", [])
         for block in blocks:
             if block.get("type") == "law":
@@ -298,13 +289,11 @@ class TargetAnalyser:
         """
 
         def _get_descendants(target_name: str) -> Tuple[Set[str], Set[str]]:
-            """Get all descendant laws and targets for a target."""
             if target_name not in self.targets:
                 return set(), set()
 
             target = self.targets[target_name]
 
-            # Return cached results if available
             if (
                 target["all_descendants_laws"]
                 and target["all_descendants_targets"]
@@ -313,7 +302,6 @@ class TargetAnalyser:
             ):
                 return target["all_descendants_laws"], target["all_descendants_targets"]
 
-            # Calculate descendants
             descendant_laws = set(target["direct_laws"])
             descendant_targets = set(target["direct_targets"])
 
@@ -322,50 +310,21 @@ class TargetAnalyser:
                 descendant_laws.update(child_laws)
                 descendant_targets.update(child_targets)
 
-            # Cache results
             target["all_descendants_laws"] = descendant_laws
             target["all_descendants_targets"] = descendant_targets
 
             return descendant_laws, descendant_targets
 
-        # Calculate descendants for all targets
         for target_name in list(self.targets.keys()):
             _get_descendants(target_name)
 
     def get_target_names(self) -> List[str]:
-        """
-        Get all target names.
-
-        Returns:
-            List of target names
-        """
         return list(self.targets.keys())
 
     def get_target(self, name: str) -> Optional[Dict[str, Any]]:
-        """
-        Get a specific target by name.
-
-        Args:
-            name: Target name
-
-        Returns:
-            Target data or None if not found
-        """
-        return copy.deepcopy(self.targets.get(name))
+        return self.targets.get(name).copy() if name in self.targets else None
 
     def get_target_hierarchy(self, name: str) -> Dict[str, Any]:
-        """
-        Get the hierarchy for a specific target.
-
-        Args:
-            name: Target name
-
-        Returns:
-            Hierarchy information
-
-        Raises:
-            ZenithAnalyserError: If target not found
-        """
         if name not in self.targets:
             raise ZenithAnalyserError(f"Target '{name}' not found", target_name=name)
 
@@ -383,56 +342,42 @@ class TargetAnalyser:
         }
 
     def extract_laws_for_target(self, name_target: str) -> Dict[str, Dict[str, Any]]:
-        """
-        Extract laws for a specific target with dictionary inheritance.
-
-        Args:
-            target_name: Target name
-
-        Returns:
-            Dictionary of laws with inherited dictionaries
-
-        Raises:
-            ZenithAnalyserError: If target not found
-        """
         if name_target not in self.targets:
             raise ZenithAnalyserError(
                 f"Target '{name_target}' not found", target_name=name_target
             )
 
-        targets = copy.deepcopy(self.extract_targets(self.ast))
-        laws = copy.deepcopy(self.law_analyser.extract_laws(self.ast))
+        targets = self.extract_targets(self.ast)
+        laws = self.law_analyser.extract_laws(self.ast)
 
         data_laws = {}
 
         def _traverse(target_name):
-
             direct_laws_names = targets[target_name]["direct_laws"]
             direct_laws = {}
             dictionnary = targets[target_name]["dictionnary"]
-            direct_targets_names = targets[target_name].get("direct_targets", set())
+            direct_targets_names = targets[target_name].get("direct_targets", [])
 
             for name in direct_laws_names:
-                direct_laws[name] = copy.deepcopy(laws[name])
+                direct_laws[name] = laws[name].copy()
 
-            for dict in dictionnary:
+            for dict_entry in dictionnary:
                 for name in direct_laws_names:
                     for index, event in enumerate(direct_laws[name]["dictionnary"]):
-                        if dict["name"] == event.get("index", ""):
+                        if dict_entry["name"] == event.get("index", ""):
                             direct_laws[name]["dictionnary"][index]["description"] = (
-                                dict["description"]
+                                dict_entry["description"]
                             )
 
-            for dict in dictionnary:
                 for name in direct_targets_names:
                     for index, event in enumerate(targets[name]["dictionnary"]):
-                        if dict["name"] == event.get("index", ""):
-                            targets[name]["dictionnary"][index]["description"] = dict[
-                                "description"
-                            ]
+                        if dict_entry["name"] == event.get("index", ""):
+                            targets[name]["dictionnary"][index]["description"] = (
+                                dict_entry["description"]
+                            )
 
             for name in list(direct_laws.keys()):
-                data_laws[name] = copy.deepcopy(direct_laws[name])
+                data_laws[name] = direct_laws[name].copy()
 
             for name in direct_targets_names:
                 _traverse(name)
@@ -442,15 +387,6 @@ class TargetAnalyser:
         return data_laws
 
     def get_targets_by_generation(self, generation: int) -> List[str]:
-        """
-        Get targets at a specific generation level.
-
-        Args:
-            generation: Generation level (1 = root)
-
-        Returns:
-            List of target names at that generation
-        """
         result = []
         for name, target in self.targets.items():
             if target["depth"] == generation:
@@ -458,12 +394,6 @@ class TargetAnalyser:
         return result
 
     def get_max_generation(self) -> int:
-        """
-        Get the maximum generation depth.
-
-        Returns:
-            Maximum depth
-        """
         max_depth = 0
         for target in self.targets.values():
             if target["depth"] > max_depth:
@@ -471,15 +401,6 @@ class TargetAnalyser:
         return max_depth
 
     def get_targets_by_key(self, key: str) -> List[str]:
-        """
-        Get targets with a specific key.
-
-        Args:
-            key: Key to search for
-
-        Returns:
-            List of target names with that key
-        """
         result = []
         for name, target in self.targets.items():
             if target.get("key") == key:
@@ -489,18 +410,6 @@ class TargetAnalyser:
     def corp_extract_laws_transformed(
         self, generation: int = 1
     ) -> Dict[str, Dict[str, Any]]:
-        """
-        Extract laws transformed by dictionary inheritance for a specific generation.
-
-        Args:
-            generation: Generation level to extract (1 = root generation)
-
-        Returns:
-            Dictionary of laws with dictionary inheritance applied
-
-        Raises:
-            ZenithValidationError: If generation is less than 1
-        """
         if generation < 1:
             raise ZenithValidationError(
                 f"Generation level must be at least 1: {generation}",
@@ -510,9 +419,7 @@ class TargetAnalyser:
         data_laws = {}
 
         paths = {}
-        targets_names = []
-        for name in list(self.targets.keys()):
-            targets_names.append(name)
+        targets_names = list(self.targets.keys())
 
         for name in targets_names:
             paths[name] = {
@@ -521,36 +428,18 @@ class TargetAnalyser:
                 "generation": len(self.targets[name]["path"]),
             }
 
-        allowed_targets_name = []
-        for name in targets_names:
-            if paths[name]["generation"] == generation:
-                allowed_targets_name.append(name)
+        allowed_targets_name = [
+            name for name in targets_names if paths[name]["generation"] == generation
+        ]
 
         for target_name in allowed_targets_name:
-            laws = {}
-            for name in self.extract_laws_for_target(target_name):
-                laws[name] = copy.deepcopy(
-                    self.extract_laws_for_target(target_name).get(name, "")
-                )
-
-            for name in list(laws.keys()):
-                data_laws[name] = copy.deepcopy(laws[name])
+            laws = self.extract_laws_for_target(target_name)
+            for name in laws:
+                data_laws[name] = laws[name].copy()
 
         return data_laws
 
     def extract_laws_population(self, population: int = 1) -> Dict[str, Dict[str, Any]]:
-        """
-        Extract laws for a specific population level with inheritance.
-
-        Args:
-            population: Population level (1 = first generation, 0 = all laws)
-
-        Returns:
-            Dictionary of laws with dictionary inheritance for the specified population
-
-        Raises:
-            ValueError: If population is negative
-        """
         if population < 0:
             raise ZenithValidationError(
                 f"Population level cannot be negative: {population}",
@@ -560,16 +449,15 @@ class TargetAnalyser:
         laws_population = {}
         for i in range(population, 0, -1):
             current_gen_laws = self.corp_extract_laws_transformed(i)
-
             for name_gen, law_data in current_gen_laws.items():
                 if name_gen not in laws_population:
-                    laws_population[name_gen] = copy.deepcopy(law_data)
+                    laws_population[name_gen] = law_data.copy()
 
         top_level_laws = self.law_analyser.extract_laws(self.ast)
 
         for name_global, law_data in top_level_laws.items():
             if name_global not in laws_population:
-                laws_population[name_global] = copy.deepcopy(law_data)
+                laws_population[name_global] = law_data.copy()
 
         return laws_population
 
@@ -635,11 +523,11 @@ class ZenithAnalyser:
             dict_map: Dictionary mapping event names to descriptions
 
         Returns:
-            List of simulated events as tuples (start_time, law_name, event_description, end_time)
+            List of simulated events as tuples
+            (start_time, law_name, event_description, end_time)
         """
         if "group" not in law_data or "date" not in law_data or "time" not in law_data:
             return []
-
         law_name = law_data["name"]
         date = law_data["date"]
         time = law_data["time"]
@@ -687,7 +575,6 @@ class ZenithAnalyser:
                 f"Target '{target_name}' not found", target_name=target_name
             )
 
-        # 1. Extraction des lois transformées (avec dictionnaires mis à jour)
         transformed_laws = self.target_analyser.extract_laws_for_target(target_name)
 
         if not transformed_laws:
@@ -696,13 +583,11 @@ class ZenithAnalyser:
                 target_name=target_name,
             )
 
-        # 2. Préparation du dictionnaire des descriptions d'événements finales (du target)
         target_dict = self.target_analyser.targets[target_name].get("dictionnary", [])
         merged_dictionnary_map = {
             item["name"]: item["description"] for item in target_dict
         }
 
-        # 3. Simulation et collecte de TOUS les événements triés
         all_simulated_events = []
 
         for law_name, law_data in transformed_laws.items():
@@ -711,7 +596,6 @@ class ZenithAnalyser:
             )
             all_simulated_events.extend(simulated_events)
 
-        # Trier TOUS les événements simulés par date de début
         all_simulated_events.sort(key=lambda x: x[0])
 
         if not all_simulated_events:
@@ -720,32 +604,21 @@ class ZenithAnalyser:
                 target_name=target_name,
             )
 
-        # 4. Créer la structure "loi fusionnée" (merged_law_data)
-
-        # Trouver la loi de base (celle qui commence le plus tôt)
-        base_law_name = all_simulated_events[0][
-            1
-        ]  # Nom de la loi de l'événement le plus précoce
+        base_law_name = all_simulated_events[0][1]
         base_law_data = transformed_laws[base_law_name]
 
-        merged_law_data = copy.deepcopy(base_law_data)
+        merged_law_data = base_law_data.copy()
         merged_law_data["name"] = target_name
 
-        # Mettre à jour la date de début de la loi fusionnée
         first_event_start_time = all_simulated_events[0][0]
         merged_law_data["date"] = first_event_start_time.strftime("%Y-%m-%d")
         merged_law_data["time"] = first_event_start_time.strftime("%H:%M")
 
-        # 5. Reconstruire le 'group' et le 'dictionnary' factices pour l'analyse métrique
-
         new_group = []
 
         for i, (start_time, _, event_desc, end_time) in enumerate(all_simulated_events):
-
-            # 5.1. Calculer Cohérence (durée de l'événement)
             coherence_minutes = int((end_time - start_time).total_seconds() / 60)
 
-            # 5.2. Calculer Dispersal (temps entre la fin de cet événement et le début du suivant)
             dispersal_minutes = 0
             if i < len(all_simulated_events) - 1:
                 next_start_time = all_simulated_events[i + 1][0]
@@ -753,9 +626,6 @@ class ZenithAnalyser:
                     (next_start_time - end_time).total_seconds() / 60
                 )
 
-            # Pour que law_description_data fonctionne, nous devons utiliser le format de "point" pour chronocoherence/chronodispersal
-            # Comme nous travaillons avec des minutes réelles, nous les convertissons en un format simple de type "nombre"
-            # (qui est accepté par point_to_minutes car il est traité comme X.0.0.0.0 ou 0.X.0.0.0)
             coherence_str = (
                 minutes_to_point(coherence_minutes) if coherence_minutes > 0 else "0"
             )
@@ -763,26 +633,21 @@ class ZenithAnalyser:
 
             new_group.append(
                 {
-                    # Utiliser la description comme 'name' (ID) pour l'analyse métrique
                     "name": event_desc,
                     "chronocoherence": coherence_str,
                     "chronodispersal": dispersal_str,
                 }
             )
 
-        # 5.3. Mettre à jour les données fusionnées
         merged_law_data["group"] = new_group
 
-        # 5.4. Reconstruire le dictionnaire pour mapper la 'name' (qui est la description) à elle-même
-        # C'est nécessaire pour que la boucle de substitution de law_description_data ne casse pas l'analyse
-        final_dictionnary = []
-        unique_event_names = sorted(list(set(event["name"] for event in new_group)))
-        for name in unique_event_names:
-            final_dictionnary.append({"name": name, "description": name})
+        unique_event_names = sorted({event["name"] for event in new_group})
+        final_dictionnary = [
+            {"name": name, "description": name} for name in unique_event_names
+        ]
 
         merged_law_data["dictionnary"] = final_dictionnary
 
-        # 6. Appel final
         return self.law_description_data(target_name, merged_law_data)
 
     def law_description(self, name: str, population: int = 0) -> Dict[str, Any]:
@@ -799,7 +664,6 @@ class ZenithAnalyser:
         Raises:
             ZenithAnalyserError: If law not found or invalid
         """
-        # Get law data with appropriate population
         law_data = None
 
         if population > 0:
@@ -830,7 +694,6 @@ class ZenithAnalyser:
         Raises:
             ZenithAnalyserError: If law data is invalid
         """
-        # Validate law data
         required = ["date", "time", "period", "dictionnary", "group"]
         for field in required:
             if field not in law_data:
@@ -838,97 +701,63 @@ class ZenithAnalyser:
                     f"Law data missing required field: {field}", law_name=name
                 )
 
-        # Prepare group with descriptions
-        group = copy.deepcopy(law_data["group"])
+        group = law_data["group"].copy()
 
-        # Map event names to descriptions
         event_descriptions = {}
         for entry in law_data["dictionnary"]:
             entry_name = entry.get("name")
             entry_desc = entry.get("description", "")
+            event_descriptions[entry_name] = entry_desc or entry_name
 
-            if entry_desc:
-                event_descriptions[entry_name] = entry_desc
-            else:
-                event_descriptions[entry_name] = entry_name
-
-        # Replace event names with descriptions in group
         for event in group:
             event_name = event.get("name", "")
             if event_name in event_descriptions:
                 event["name"] = event_descriptions[event_name]
-            elif event_name:
-                # Keep original name if no description found
-                event["name"] = event_name
 
-        # Calculate totals
         total_coherence = 0
         total_dispersal = 0
 
         for i, event in enumerate(group):
-            try:
-                coherence = point_to_minutes(event["chronocoherence"])
-                total_coherence += coherence
+            coherence = point_to_minutes(event["chronocoherence"])
+            total_coherence += coherence
 
-                if i < len(group) - 1:
-                    dispersal = point_to_minutes(event["chronodispersal"])
-                    total_dispersal += dispersal
-            except ZenithTimeError as e:
-                raise ZenithAnalyserError(
-                    f"Invalid time in event {i}: {str(e)}", law_name=name
-                ) from e
+            if i < len(group) - 1:
+                dispersal = point_to_minutes(event["chronodispersal"])
+                total_dispersal += dispersal
 
         total_duration = total_coherence + total_dispersal
 
-        # Parse start date/time
-        try:
-            start_dt = parse_datetime(law_data["date"], law_data["time"])
-        except ZenithTimeError as e:
-            raise ZenithAnalyserError(
-                f"Invalid start date/time: {str(e)}", law_name=name
-            ) from e
+        start_dt = parse_datetime(law_data["date"], law_data["time"])
 
-        # Calculate period
-        try:
-            period_minutes = point_to_minutes(law_data["period"])
-        except ZenithTimeError as e:
-            raise ZenithAnalyserError(f"Invalid period: {str(e)}", law_name=name) from e
+        period_minutes = point_to_minutes(law_data["period"])
 
-        # Calculate end date
-        if total_duration >= period_minutes:
-            end_dt = add_minutes_to_datetime(start_dt, total_duration)
-        else:
-            end_dt = add_minutes_to_datetime(start_dt, period_minutes)
+        end_dt = add_minutes_to_datetime(
+            start_dt,
+            total_duration if total_duration >= period_minutes else period_minutes,
+        )
 
-        # Generate simulation
         simulation = []
         current_time = start_dt
 
         for i, event in enumerate(group):
-            try:
-                coherence = point_to_minutes(event["chronocoherence"])
-                event_end = add_minutes_to_datetime(current_time, coherence)
+            coherence = point_to_minutes(event["chronocoherence"])
+            event_end = add_minutes_to_datetime(current_time, coherence)
 
-                simulation.append(
-                    {
-                        "event_name": event["name"],
-                        "start": format_datetime(current_time),
-                        "end": format_datetime(event_end),
-                        "duration_minutes": int(coherence),
-                    }
-                )
+            simulation.append(
+                {
+                    "event_name": event["name"],
+                    "start": format_datetime(current_time),
+                    "end": format_datetime(event_end),
+                    "duration_minutes": int(coherence),
+                }
+            )
 
-                current_time = event_end
+            current_time = event_end
 
-                if i < len(group) - 1:
-                    dispersal = point_to_minutes(event["chronodispersal"])
-                    current_time = add_minutes_to_datetime(current_time, dispersal)
-            except ZenithTimeError as e:
-                raise ZenithAnalyserError(
-                    f"Error in event {i} simulation: {str(e)}", law_name=name
-                ) from e
+            if i < len(group) - 1:
+                dispersal = point_to_minutes(event["chronodispersal"])
+                current_time = add_minutes_to_datetime(current_time, dispersal)
 
-        # Calculate event metrics
         event_metrics = {}
         for event in group:
             event_name = event["name"]
@@ -943,10 +772,6 @@ class ZenithAnalyser:
             metrics["count"] += 1
             metrics["total_coherence"] += point_to_minutes(event["chronocoherence"])
 
-            # Dispersal is for the event that comes before the gap
-            # We'll handle this differently in the loop
-
-        # Calculate dispersals
         for i, event in enumerate(group):
             if i < len(group) - 1:
                 event_name = event["name"]
@@ -954,7 +779,6 @@ class ZenithAnalyser:
                     dispersal = point_to_minutes(event["chronodispersal"])
                     event_metrics[event_name]["total_dispersal"] += dispersal
 
-        # Format event metrics
         formatted_metrics = []
         for event_name, metrics in event_metrics.items():
             count = metrics["count"]
@@ -973,15 +797,12 @@ class ZenithAnalyser:
                 }
             )
 
-        # Calculate dispersion (time between occurrences of same event)
         dispersion_metrics = {}
         event_positions = {}
 
         for i, event in enumerate(group):
             event_name = event["name"]
-            if event_name not in event_positions:
-                event_positions[event_name] = []
-            event_positions[event_name].append(i)
+            event_positions.setdefault(event_name, []).append(i)
 
         for event_name, positions in event_positions.items():
             if len(positions) > 1:
@@ -989,8 +810,6 @@ class ZenithAnalyser:
                 for j in range(len(positions) - 1):
                     start_pos = positions[j]
                     end_pos = positions[j + 1]
-
-                    # Calculate total time between occurrences
                     dispersion_time = 0
                     for k in range(start_pos, end_pos):
                         dispersion_time += point_to_minutes(group[k]["chronocoherence"])
@@ -998,7 +817,6 @@ class ZenithAnalyser:
                             dispersion_time += point_to_minutes(
                                 group[k]["chronodispersal"]
                             )
-
                     dispersions.append(dispersion_time)
 
                 dispersion_metrics[event_name] = {
@@ -1017,7 +835,6 @@ class ZenithAnalyser:
             for event_name, metrics in dispersion_metrics.items()
         ]
 
-        # Return complete description
         return {
             "name": name,
             "start_date": law_data["date"],
@@ -1056,32 +873,27 @@ class ZenithAnalyser:
         if population == -1:
             population = self.target_analyser.get_max_generation()
 
-        # Get laws for this population
         population_laws = {}
 
         if population > 0:
-            # Get targets at this generation
             targets = self.target_analyser.get_targets_by_generation(population)
-
             for target_name in targets:
                 target_laws = self.target_analyser.extract_laws_for_target(target_name)
                 for law_name, law_data in target_laws.items():
                     if law_name not in population_laws:
-                        population_laws[law_name] = law_data
+                        population_laws[law_name] = law_data.copy()
         else:
-            # Population 0 means all laws not in any target
             all_target_laws = set()
             for target in self.target_analyser.targets.values():
                 all_target_laws.update(target["all_descendants_laws"])
 
             for law_name, law_data in self.law_analyser.laws.items():
                 if law_name not in all_target_laws:
-                    population_laws[law_name] = law_data
+                    population_laws[law_name] = law_data.copy()
 
         if not population_laws:
             raise ZenithAnalyserError(f"No laws found for population {population}")
 
-        # Analyze each law
         law_descriptions = {}
         all_events = []
 
@@ -1090,7 +902,6 @@ class ZenithAnalyser:
                 law_desc = self.law_description_data(law_name, law_data)
                 law_descriptions[law_name] = law_desc
 
-                # Collect events
                 for event in law_desc.get("simulation", []):
                     all_events.append(
                         {
@@ -1104,14 +915,12 @@ class ZenithAnalyser:
             except ZenithAnalyserError as e:
                 law_descriptions[law_name] = {"error": str(e)}
 
-        # Sort all events
         all_events.sort(
             key=lambda x: parse_datetime(
                 x["start_datetime"]["date"], x["start_datetime"]["time"]
             )
         )
 
-        # Calculate population statistics
         total_duration = sum(
             desc.get("total_duration_minutes", 0)
             for desc in law_descriptions.values()
@@ -1137,7 +946,6 @@ class ZenithAnalyser:
             "end_range": all_events[-1]["end_datetime"] if all_events else None,
         }
 
-        # Event statistics across population
         event_stats = {}
         for event in all_events:
             event_name = event["event_name"]
@@ -1185,10 +993,8 @@ class ZenithAnalyser:
         Returns:
             Complete corpus analysis
         """
-        # Get AST summary
         ast_summary = self.parser.get_ast_summary(self.ast)
 
-        # Get all laws with validation
         all_laws = {}
         for law_name in self.law_analyser.get_law_names():
             try:
@@ -1196,7 +1002,6 @@ class ZenithAnalyser:
             except ZenithAnalyserError as e:
                 all_laws[law_name] = {"error": str(e)}
 
-        # Get all targets with hierarchy
         all_targets = {}
         for target_name in self.target_analyser.get_target_names():
             try:
@@ -1206,7 +1011,6 @@ class ZenithAnalyser:
             except ZenithAnalyserError as e:
                 all_targets[target_name] = {"error": str(e)}
 
-        # Calculate corpus statistics
         total_events = 0
         total_duration = 0
 

@@ -67,7 +67,12 @@ class Lexer:
 
         # Add EOF token
         self.tokens.append(
-            {"type": "EOF", "value": "", "line": self.line, "col": self.col}
+            {
+                "type": "EOF",
+                "value": "",
+                "line": self.line,
+                "col": self.col,
+            }
         )
 
         return self.tokens
@@ -105,7 +110,7 @@ class Lexer:
 
         # Try to match each token pattern
         for token_type, pattern in self._token_patterns:
-            match = pattern.match(self.input[self.pos :])
+            match = pattern.match(self.input[self.pos:])
             if match:
                 value = match.group(0)
 
@@ -144,7 +149,6 @@ class Lexer:
         Returns:
             Token at offset or None if end of stream
         """
-        # If we haven't tokenized yet, do it now
         if not self.tokens:
             self.tokenise()
 

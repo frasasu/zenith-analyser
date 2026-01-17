@@ -11,25 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Validation module for Zenith Analyser.
 """
 
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .constants import (
     MAX_AST_SIZE,
     MAX_NESTING_DEPTH,
     MAX_TOKENS,
-    VALID_DATE_REGEX,
-    VALID_IDENTIFIER_REGEX,
-    VALID_POINT_REGEX,
-    VALID_TIME_REGEX,
     ZENITH_KEYWORDS,
 )
-from .exceptions import ZenithLimitError, ZenithValidationError
+from .exceptions import ZenithLimitError
 from .utils import validate_date, validate_identifier, validate_point, validate_time
 
 
@@ -184,7 +181,6 @@ class Validator:
     def _validate_block_structure(self, code: str):
         """Validate block structure."""
         lines = code.split("\n")
-        indent_level = 0
         in_law = False
         in_target = False
 
@@ -221,14 +217,14 @@ class Validator:
 
     def _validate_keywords(self, code: str):
         """Validate keyword usage."""
-        # Check for reserved words as identifiers
         lines = code.split("\n")
 
         for i, line in enumerate(lines, 1):
             words = re.findall(r"\b\w+\b", line)
             for word in words:
                 if word in ZENITH_KEYWORDS:
-                    # Check if it's used as a keyword (should be followed by colon or space+colon)
+                    # Check if it's used as a keyword
+                    #  (should be followed by colon or space+colon)
                     if not re.search(rf"\b{word}\s*[:\(]", line):
                         self.warnings.append(
                             f"Line {i}: Reserved word '{word}' used as identifier"
@@ -359,7 +355,6 @@ class Validator:
         # Check if date is reasonable (not too far in past/future)
         try:
             dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-            now = datetime.now()
 
             # Allow dates from 2000 to 2100
             if dt.year < 2000 or dt.year > 2100:
@@ -383,7 +378,7 @@ class Validator:
                 self.warnings.append(
                     f"Period {period} is very long ({minutes} minutes)"
                 )
-        except:
+        except Exception:
             pass
 
     def _validate_dictionnary(self, dictionnary: List[Dict[str, Any]]):
@@ -439,21 +434,25 @@ class Validator:
             required = ["name", "chronocoherence", "chronodispersal"]
             for field in required:
                 if field not in event:
-                    self.errors.append(f"Group event {i} missing '{field}' field")
+                    self.errors.append(f"Group event {i}" f" missing '{field}' field")
 
             if "name" in event:
                 name = event["name"]
                 if name not in dictionnary_names:
-                    self.errors.append(f"Group event '{name}' not found in dictionnary")
+                    self.errors.append(
+                        f"Group event " f"'{name}' not found in dictionnary"
+                    )
 
             if "chronocoherence" in event:
                 if not validate_point(event["chronocoherence"]):
                     self.errors.append(
-                        f"Invalid chronocoherence in event {i}: '{event['chronocoherence']}'"
+                        f"Invalid chronocoherence in event {i}: "
+                        f"'{event['chronocoherence']}'"
                     )
 
             if "chronodispersal" in event:
                 if not validate_point(event["chronodispersal"]):
                     self.errors.append(
-                        f"Invalid chronodispersal in event {i}: '{event['chronodispersal']}'"
+                        f"Invalid chronodispersal in event {i}: ,"
+                        f"'{event['chronodispersal']}'"
                     )

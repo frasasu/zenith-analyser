@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 AST Unparser for Zenith language.
 
 Reconstructs Zenith code from an Abstract Syntax Tree (AST).
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
 class ASTUnparser:
