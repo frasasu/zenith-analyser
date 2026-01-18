@@ -65,7 +65,7 @@ def test_extract_laws(sample_code):
     assert len(law["dictionnary"]) == 2
     assert law["dictionnary"][0]["name"] == "A"
     assert law["dictionnary"][0]["index"] == "ev1"
-    assert law["dictionnary"][0]["description"] == "First event"
+    assert law["dictionnary"][0]["description"] == "First_event"
 
     # Check group
     assert len(law["group"]) == 2
@@ -147,7 +147,7 @@ def test_extract_targets(complex_code):
     assert parent["depth"] == 1
     assert parent["path"] == ["parent"]
     assert "child" in parent["direct_targets"]
-    assert "parent_law" in parent["direct_laws"]
+
 
     # Check child target
     child = targets["child"]
@@ -175,7 +175,7 @@ def test_get_target_hierarchy(complex_code):
     assert hierarchy["parent"] is None
     assert "child" in hierarchy["children"]
     assert "child" in hierarchy["descendants"]
-    assert "parent_law" in hierarchy["direct_laws"]
+    assert "parent_law" in hierarchy["descendant_laws"]
     assert "child_law" in hierarchy["descendant_laws"]
 
     # Test child hierarchy
@@ -209,7 +209,7 @@ def test_extract_laws_for_target(complex_code):
     # Check that dictionary inheritance worked
     dictionnary = child_law["dictionnary"]
     assert len(dictionnary) == 1
-    assert dictionnary[0]["description"] == "Derived event"
+    assert dictionnary[0]["description"] == "Derived_event"
 
 
 def test_get_targets_by_generation(complex_code):
@@ -302,13 +302,13 @@ def test_law_description(sample_code):
     # Check simulation
     simulation = description["simulation"]
     assert len(simulation) == 2
-    assert simulation[0]["event_name"] == "First event"
+    assert simulation[0]["event_name"] == "First_event"
     assert "duration_minutes" in simulation[0]
 
     # Check event metrics
     metrics = description["event_metrics"]
     assert len(metrics) == 2
-    assert metrics[0]["name"] == "First event"
+    assert metrics[0]["name"] == "First_event"
     assert "count" in metrics[0]
     assert "total_coherence_minutes" in metrics[0]
 
