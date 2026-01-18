@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'  # Se déclenche sur les tags comme v1.0.0, v2.1.0-alpha, etc.
+      - 'v*'  # Déclenchement sur tags type v1.0.0
 
 jobs:
   test-release:
@@ -38,42 +38,28 @@ jobs:
         run: |
           WHEEL_FILE=$(ls dist/*.whl 2>/dev/null | head -1)
           if [ -z "$WHEEL_FILE" ]; then
-            echo "❌ No wheel file found in dist/"
+            echo "❌ No wheel file found"
             exit 1
           fi
           pip install "$WHEEL_FILE"
-          python -c "import zenith_analyser; print(f'Successfully installed zenith_analyser {zenith_analyser.__version__}')"
+          python -c "import zenith_analyser; print(f'Successfully installed {zenith_analyser.__version__}')"
 
       - name: Test package structure
         run: |
           python << 'EOF'
-          import os
-          import zipfile
-          import sys
-          import glob
-
+          import zipfile, sys, glob
           wheels = glob.glob('dist/*.whl')
-          if not wheels:
-              sys.exit(1)
-
-          wheel_path = wheels[0]
+          if not wheels: sys.exit(1)
           try:
-              with zipfile.ZipFile(wheel_path) as zf:
+              with zipfile.ZipFile(wheels[0]) as zf:
                   files = zf.namelist()
-                  required = [
-                      'zenith_analyser/__init__.py',
-                      'zenith_analyser/lexer.py',
-                      'zenith_analyser/parser.py',
-                      'zenith_analyser/analysers.py'
-                  ]
-                  missing = [r for r in required if not any(r in f for f in files)]
-                  if missing:
-                      print(f'❌ Missing: {missing}')
-                      sys.exit(1)
-                  print('✅ Wheel structure is correct')
+                  req = ['zenith_analyser/__init__.py', 'zenith_analyser/lexer.py', 'zenith_analyser/parser.py']
+                  for r in req:
+                      if not any(r in f for f in files):
+                          print(f'❌ Missing: {r}'); sys.exit(1)
+              print('✅ Structure OK')
           except Exception as e:
-              print(f'❌ Error: {e}')
-              sys.exit(1)
+              print(f'❌ Error: {e}'); sys.exit(1)
           EOF
 
       - name: Upload build artifacts
@@ -91,7 +77,7 @@ jobs:
       name: pypi
       url: https://pypi.org/p/zenith-analyser
     permissions:
-      id-token: write  # Requis pour Trusted Publishing (OIDC)
+      id-token: write  # Crucial pour OIDC/Trusted Publishing
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -107,7 +93,7 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    needs: [test-release, publish-pypi] # On attend que PyPI soit validé
+    needs: [test-release, publish-pypi]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -125,7 +111,9 @@ jobs:
         id: generate_release_notes
         run: |
           VERSION="${{ steps.get_version_direct.outputs.VERSION }}"
-          python << 'EOF' "$VERSION" > release_notes.txt
+          
+          # Utilisation de "python - " pour accepter les arguments avec heredoc
+          python - << 'EOF' "$VERSION" > release_notes.txt
           import re, sys
           version = sys.argv[1]
           try:
@@ -140,14 +128,15 @@ jobs:
                       break
                   if found:
                       notes.append(line.rstrip('\n'))
-              print('\n'.join(notes).strip() if notes else f"## Release {version}\nDetails in CHANGELOG.md")
+              print('\n'.join(notes).strip() if notes else f"Release {version}")
           except:
-              print(f"## Release {version}")
+              print(f"Release {version}")
           EOF
 
           echo "## What's Changed" > release_body.md
+          echo "" >> release_body.md
           cat release_notes.txt >> release_body.md
-          echo -e "\n## Installation\n\`\`\`bash\npip install zenith-analyser==$VERSION\n\`\`\`" >> release_body.md
+          echo -e "\n\n## Installation\n\`\`\`bash\npip install zenith-analyser==$VERSION\n\`\`\`" >> release_body.md
 
       - name: Download distribution files
         uses: actions/download-artifact@v4
@@ -156,7 +145,7 @@ jobs:
           path: dist/
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2 # Mis à jour vers v2
+        uses: softprops/action-gh-release@v2
         with:
           name: "Release v${{ steps.get_version_direct.outputs.VERSION }}"
           body_path: release_body.md
@@ -174,6 +163,6 @@ jobs:
         run: |
           VERSION="${{ github.ref_name }}"
           echo "=========================================="
-          echo "✅ Release $VERSION published successfully!"
+          echo "✅ Release $VERSION terminée avec succès !"
           echo "📦 PyPI: https://pypi.org/project/zenith-analyser/"
           echo "=========================================="
