@@ -458,4 +458,3 @@ class Validator:
                         f"Invalid chronodispersal in event {i}: ,"
                         f"'{event['chronodispersal']}'"
                     )
-
