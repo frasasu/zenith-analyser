@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Tests for the Parser class.
 """
 
 import pytest
 
-from src.zenith_analyser import Parser, ZenithParserError
+from src.zenith_analyser import Parser
 
 
 def test_parser_initialization(sample_code, lexer):
@@ -206,4 +207,3 @@ def test_parse_round_trip(sample_code):
     # Basic structure should match
     assert ast["type"] == ast2["type"]
     assert len(ast["elements"]) == len(ast2["elements"])
-

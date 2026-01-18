@@ -64,10 +64,10 @@ def test_full_workflow(sample_code):
     law_desc2 = analyser2.law_description("test_law")
     assert law_desc2["name"] == "test_law"
     # Allow small differences in time calculations
-    assert (
-        abs(law_desc["total_duration_minutes"] - law_desc2["total_duration_minutes"])
-        <= 1
+    duration_diff = abs(
+        law_desc["total_duration_minutes"] - law_desc2["total_duration_minutes"]
     )
+    assert duration_diff <= 1
 
 
 @pytest.mark.integration
@@ -85,8 +85,9 @@ def test_complex_hierarchy_workflow(complex_code):
     for population in [1, 2, -1]:
         pop_desc = analyser.population_description(population)
         expected_level = 2 if population == -1 else population
-        assert pop_desc["population_stats"]["population_level"] == expected_level
-        assert pop_desc["population_stats"]["total_laws"] > 0
+        stats = pop_desc["population_stats"]
+        assert stats["population_level"] == expected_level
+        assert stats["total_laws"] > 0
 
     # Test target hierarchy
     hierarchy = analyser.target_analyser.get_target_hierarchy("child")
@@ -144,8 +145,7 @@ def test_file_io_workflow(sample_code, temp_file, temp_json_file):
 def test_performance_workflow():
     """Test performance of complete workflow."""
     # Create moderately large code
-    code_parts = []
-    code_parts.append('target performance_test:\n    key:"test"\n    dictionnary:')
+    code_parts = ['target perf_test:\n    key:"test"\n    dictionnary:']
 
     # Add 100 dictionary entries
     for i in range(100):
@@ -153,7 +153,7 @@ def test_performance_workflow():
 
     code_parts.append("")
 
-    # Add 50 laws
+    # Add 30 laws
     for i in range(30):
         code_parts.append(
             f"""    law law_{i}:
@@ -221,10 +221,8 @@ end_target
                 self.input = temp_path
                 self.strict = False
 
-        args = Args()
+        _ = Args()  # Corrected F841: variable assigned but never used
 
-        # This would call validate_command, but we need to mock stdin/stdout
-        # Instead, test the components directly
         validator = Validator()
         errors = validator.validate_code(code)
         assert len(errors) == 0
@@ -280,7 +278,7 @@ end_target
     analyser2 = ZenithAnalyser(unparsed)
     law_desc2 = analyser2.law_description("daily")
 
-    # Compare key metrics (allow small floating point differences)
+    # Compare key metrics
     metrics1 = [
         law_desc1["total_duration_minutes"],
         law_desc1["coherence_total_minutes"],
@@ -310,13 +308,11 @@ def test_memory_usage():
     # Create large code
     code_lines = ['target large:\n    key:"test"\n    dictionnary:']
 
-    # Add many dictionary entries
     for i in range(1000):
         code_lines.append(f'        e{i}:"Event {i}"')
 
     code_lines.append("")
 
-    # Add many simple laws
     for i in range(100):
         code_lines.append(
             f"""    law l{i}:
@@ -331,37 +327,25 @@ def test_memory_usage():
     code_lines.append("end_target")
     code = "\n".join(code_lines)
 
-    # Start tracking memory
     tracemalloc.start()
-
     try:
-        # Create analyser
         snapshot1 = tracemalloc.take_snapshot()
         analyser = ZenithAnalyser(code)
         snapshot2 = tracemalloc.take_snapshot()
 
-        # Calculate memory increase
         stats = snapshot2.compare_to(snapshot1, "lineno")
         total_increase = sum(stat.size_diff for stat in stats if stat.size_diff > 0)
 
-        # Memory increase should be reasonable (< 50MB for this test)
-        assert (
-            total_increase < 50 * 1024 * 1024
-        ), f"Memory increased by {total_increase / (1024*1024):.1f}MB"
+        assert total_increase < 50 * 1024 * 1024
 
-        # Perform analysis
         snapshot3 = tracemalloc.take_snapshot()
-        analysis = analyser.analyze_corpus()
+        _ = analyser.analyze_corpus()  # Corrected F841: unused analysis
         snapshot4 = tracemalloc.take_snapshot()
 
         stats = snapshot4.compare_to(snapshot3, "lineno")
         analysis_increase = sum(stat.size_diff for stat in stats if stat.size_diff > 0)
 
-        # Analysis memory should also be reasonable
-        assert (
-            analysis_increase < 10 * 1024 * 1024
-        ), f"Analysis memory increased by {analysis_increase / (1024*1024):.1f}MB"
+        assert analysis_increase < 10 * 1024 * 1024
 
     finally:
         tracemalloc.stop()
-

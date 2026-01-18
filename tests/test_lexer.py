@@ -258,4 +258,3 @@ def test_large_input():
 
     assert len(tokens) > 1000
     assert tokens[-1]["type"] == "EOF"
-

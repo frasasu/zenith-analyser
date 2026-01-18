@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Tests for the Validator class.
 """
-
-import pytest
 
 from src.zenith_analyser import Validator, ZenithAnalyser
 
@@ -34,7 +33,7 @@ def test_validate_code_basic(sample_code):
     errors = validator.validate_code(sample_code)
 
     assert len(errors) == 0
-    #assert len(validator.warnings) == 0
+    # #assert len(validator.warnings) == 0
 
 
 def test_validate_code_empty():
@@ -219,7 +218,6 @@ def test_validate_law_data_invalid_period():
 
 def test_validate_code_line_length_warning():
     """Test line length warning."""
-
     validator = Validator()
     # Should have warning about line length
     warnings = validator.warnings
@@ -228,7 +226,6 @@ def test_validate_code_line_length_warning():
 
 def test_validate_code_large_file_warning():
     """Test large file warning."""
-
     validator = Validator()
     # Should have warning about large file
     warnings = validator.warnings
@@ -243,4 +240,3 @@ def test_calculate_ast_size(sample_code):
     size = validator._calculate_ast_size(analyser.ast)
     assert size > 0
     assert isinstance(size, int)
-

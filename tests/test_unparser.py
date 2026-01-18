@@ -25,7 +25,7 @@ def test_unparser_initialization(parser):
     """Test ASTUnparser initialization."""
     ast = parser.parse()[0]
     unparser = ASTUnparser(ast)
-    
+
     assert unparser.ast == ast
     assert unparser.output_lines == []
     assert unparser.current_indent == 0
@@ -36,10 +36,10 @@ def test_unparse_basic(sample_code):
     analyser = ZenithAnalyser(sample_code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     assert isinstance(unparsed, str)
     assert len(unparsed) > 0
-    
+
     # Check for key elements
     assert "target test_target:" in unparsed
     assert 'key:"Test key"' in unparsed
@@ -54,20 +54,20 @@ def test_unparse_complex(complex_code):
     analyser = ZenithAnalyser(complex_code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Check structure
     lines = unparsed.split("\n")
-    
+
     # Count indentation levels
     indent_levels = []
     for line in lines:
         if line.strip():
             indent = len(line) - len(line.lstrip())
             indent_levels.append(indent // 4)  # 4 spaces per indent
-    
+
     # Should have multiple indent levels
     assert max(indent_levels) >= 2
-    
+
     # Check for all key elements
     assert "target parent:" in unparsed
     assert "target child:" in unparsed
@@ -78,7 +78,7 @@ def test_unparse_complex(complex_code):
 def test_format_code():
     """Test code formatting."""
     unparser = ASTUnparser({})  # Dummy AST
-    
+
     # Test with unformatted code
     code = """target test:
 key:"value"
@@ -92,9 +92,9 @@ A:"test"
 GROUP:(A 1.0^0)
 end_law
 end_target"""
-    
+
     formatted = unparser.format_code(code)
-    
+
     # Check indentation
     lines = formatted.split("\n")
     assert lines[0] == "target test:"
@@ -103,7 +103,7 @@ end_target"""
     assert lines[3] == '        d1:"desc"'
     assert lines[4] == "        law example:"
     assert lines[5] == "            start_date:2024-01-01 at 10:00"
-    
+
     # Check that end blocks are properly dedented
     assert "    end_law" in formatted
     assert "end_target" in formatted
@@ -114,7 +114,7 @@ def test_validate_unparse(sample_code):
     analyser = ZenithAnalyser(sample_code)
     unparser = ASTUnparser(analyser.ast)
     is_valid = unparser.validate_unparse()
-    
+
     assert is_valid is True
 
 
@@ -123,7 +123,7 @@ def test_get_unparse_stats(sample_code):
     analyser = ZenithAnalyser(sample_code)
     unparser = ASTUnparser(analyser.ast)
     stats = unparser.get_unparse_stats()
-    
+
     assert isinstance(stats, dict)
     assert "total_lines" in stats
     assert "non_empty_lines" in stats
@@ -132,7 +132,7 @@ def test_get_unparse_stats(sample_code):
     assert "event_count" in stats
     assert "total_length" in stats
     assert "valid_structure" in stats
-    
+
     assert stats["law_count"] == 1
     assert stats["target_count"] == 1
     assert stats["valid_structure"] is True
@@ -141,25 +141,25 @@ def test_get_unparse_stats(sample_code):
 def test_unparse_round_trip(sample_code):
     """Test unparse -> parse round trip."""
     analyser = ZenithAnalyser(sample_code)
-    
+
     # Unparse
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Parse again
     analyser2 = ZenithAnalyser(unparsed)
-    
+
     # Basic checks
     law_names = analyser2.law_analyser.get_law_names()
     assert "test_law" in law_names
-    
+
     target_names = analyser2.target_analyser.get_target_names()
     assert "test_target" in target_names
-    
+
     # Compare some key properties
     law1 = analyser.law_analyser.get_law("test_law")
     law2 = analyser2.law_analyser.get_law("test_law")
-    
+
     assert law1["date"] == law2["date"]
     assert law1["time"] == law2["time"]
     assert law1["period"] == law2["period"]
@@ -170,7 +170,7 @@ def test_unparse_empty_ast():
     ast = {"type": "corpus_textuel", "elements": []}
     unparser = ASTUnparser(ast)
     unparsed = unparser.unparse()
-    
+
     assert unparsed == "" or unparsed == "\n"
 
 
@@ -180,7 +180,7 @@ def test_unparse_malformed_ast():
     ast = {"type": "law"}  # Missing name and contents
     unparser = ASTUnparser(ast)
     unparsed = unparser.unparse()
-    
+
     # Should handle gracefully, not crash
     assert isinstance(unparsed, str)
 
@@ -206,11 +206,11 @@ target level1:
         end_target
 end_target
 """
-    
+
     analyser = ZenithAnalyser(code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Check indentation
     lines = unparsed.split("\n")
     for line in lines:
@@ -239,11 +239,11 @@ target test:
     end_law
 end_target
 """
-    
+
     analyser = ZenithAnalyser(code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Check that descriptions are preserved
     assert '"First event description"' in unparsed
     assert '"Second event description"' in unparsed
@@ -264,16 +264,16 @@ law test:
     GROUP:(A 45^15 - B 30^30 - C 15^0)
 end_law
 """
-    
+
     analyser = ZenithAnalyser(code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Check GROUP line
     lines = unparsed.split("\n")
     group_lines = [line for line in lines if "GROUP:" in line]
     assert len(group_lines) > 0
-    
+
     group_line = group_lines[0]
     assert "A 45^15" in group_line
     assert "B 30^30" in group_line
@@ -315,25 +315,25 @@ target project:
     end_law
 end_target
 """
-    
+
     analyser = ZenithAnalyser(code)
     unparser = ASTUnparser(analyser.ast)
-    
+
     # Test regular unparse
     unparsed = unparser.unparse()
     assert "target project:" in unparsed
     assert "target frontend:" in unparsed
     assert "law sprint1:" in unparsed
     assert "law planning:" in unparsed
-    
+
     # Test formatted unparse
     formatted = unparser.format_code(unparsed)
-    
+
     # Parse formatted code to ensure it's valid
     analyser2 = ZenithAnalyser(formatted)
     error_count = len(analyser2.parser_errors)
     assert error_count == 0, f"Found {error_count} parser errors"
-    
+
     # Get stats
     stats = unparser.get_unparse_stats()
     assert stats["valid_structure"] is True
@@ -356,11 +356,11 @@ target test:
     end_law
 end_target
 """
-    
+
     analyser = ZenithAnalyser(code)
     unparser = ASTUnparser(analyser.ast)
     unparsed = unparser.unparse()
-    
+
     # Check dictionary formatting
     lines = unparsed.split("\n")
 

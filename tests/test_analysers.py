@@ -17,7 +17,6 @@ Tests for the analyser classes.
 """
 
 import json
-
 import pytest
 
 from src.zenith_analyser import (
@@ -101,7 +100,7 @@ def test_get_law(parser):
 
 def test_validate_law(parser):
     """Test law validation."""
-    ast, errors = parser.parse()
+    ast, _ = parser.parse()
     analyser = LawAnalyser(ast)
 
     errors = analyser.validate_law("test_law")
@@ -148,7 +147,6 @@ def test_extract_targets(complex_code):
     assert parent["path"] == ["parent"]
     assert "child" in parent["direct_targets"]
 
-
     # Check child target
     child = targets["child"]
     assert child["name"] == "child"
@@ -160,7 +158,7 @@ def test_extract_targets(complex_code):
 
 def test_get_target_hierarchy(complex_code):
     """Test getting target hierarchy."""
-    from src.zenith_analyser import Lexer, Parser, TargetAnalyser
+    from src.zenith_analyser import Lexer, Parser
 
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
@@ -188,7 +186,7 @@ def test_get_target_hierarchy(complex_code):
 
 def test_extract_laws_for_target(complex_code):
     """Test extracting laws for target with inheritance."""
-    from src.zenith_analyser import Lexer, Parser, TargetAnalyser
+    from src.zenith_analyser import Lexer, Parser
 
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
@@ -214,7 +212,7 @@ def test_extract_laws_for_target(complex_code):
 
 def test_get_targets_by_generation(complex_code):
     """Test getting targets by generation."""
-    from src.zenith_analyser import Lexer, Parser, TargetAnalyser
+    from src.zenith_analyser import Lexer, Parser
 
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
@@ -240,12 +238,12 @@ def test_get_targets_by_generation(complex_code):
 
 def test_get_max_generation(complex_code):
     """Test getting maximum generation."""
-    from src.zenith_analyser import Lexer, Parser, TargetAnalyser
+    from src.zenith_analyser import Lexer, Parser
 
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast, errors = parser.parse()
+    ast, _ = parser.parse()
 
     analyser = TargetAnalyser(ast)
 
@@ -255,12 +253,12 @@ def test_get_max_generation(complex_code):
 
 def test_get_targets_by_key(complex_code):
     """Test getting targets by key."""
-    from src.zenith_analyser import Lexer, Parser, TargetAnalyser
+    from src.zenith_analyser import Lexer, Parser
 
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast, errors = parser.parse()
+    ast, _ = parser.parse()
 
     analyser = TargetAnalyser(ast)
 
@@ -435,8 +433,7 @@ def test_point_conversion_utilities():
     for point, expected in test_cases:
         result = point_to_minutes(point)
         assert result == expected, (
-            f"Failed for {point}: "
-            f"got {result}, expected {expected}"
+            f"Failed for {point}: got {result}, expected {expected}"
         )
 
     # Test minutes_to_point (round trip)
@@ -446,8 +443,7 @@ def test_point_conversion_utilities():
         point = minutes_to_point(minutes)
         converted_back = point_to_minutes(point)
         assert abs(converted_back - minutes) <= 1, (
-            f"Round trip failed for {minutes}: "
-            f"got {converted_back}"
+            f"Round trip failed for {minutes}: got {converted_back}"
         )
 
 
@@ -531,4 +527,3 @@ end_law"""
 
     with pytest.raises(ZenithAnalyserError):
         analyser.target_description("non_existent")
-
