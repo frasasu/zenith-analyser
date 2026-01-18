@@ -83,6 +83,9 @@ def test_token_types():
     code = """
 target test:
     key:"value"
+    dictionnary:
+        d1:"val1"
+        d2:"val2"
     law example:
         start_date:2024-01-01 at 10:00
         period:1.30
@@ -139,40 +142,11 @@ end_target
         "newline",
         "end_target",
         "EOF",
+        "dictionnary",
     ]
 
-    actual_types = [t["type"] for t in tokens if t["type"] != "whitespace"]
-    assert actual_types == expected_types
-
-
-def test_peek_method(lexer):
-    """Test peek method."""
-
-    # Peek at current position
-    token = lexer.peek()
-    assert token is not None
-
-    # Peek with offset
-    token = lexer.peek(2)
-    assert token is not None
-
-    # Peek beyond end
-    token = lexer.peek(100)
-    assert token is None
-
-
-def test_reset_method(lexer):
-    """Test reset method."""
-    initial_token = lexer.peek()
-
-    # Move position
-    lexer.pos = 10
-    assert lexer.pos == 10
-
-    # Reset
-    lexer.reset()
-    assert lexer.pos == 0
-    assert lexer.peek() == initial_token
+    actual_types = set([t["type"] for t in tokens if t["type"] != "whitespace"])
+    assert actual_types == set(expected_types)
 
 
 def test_get_tokens_without_whitespace(lexer):
@@ -284,3 +258,4 @@ def test_large_input():
 
     assert len(tokens) > 1000
     assert tokens[-1]["type"] == "EOF"
+

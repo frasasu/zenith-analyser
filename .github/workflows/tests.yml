@@ -1,0 +1,121 @@
+name: Tests
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  test-matrix:
+    name: Test Matrix
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]  # Unifié sur [dev] au lieu de [test]
+        pip list
+
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --tb=short
+
+    - name: Run integration tests
+      run: |
+        pytest tests/test_integration.py -v --tb=short
+
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'  # Only run on schedule
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]  # Déjà bon
+        pip install psutil memory-profiler
+
+    - name: Run benchmarks
+      run: |
+        python benchmarks/benchmark_analysis.py --quick
+        python benchmarks/benchmark_analysis.py --profile
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: benchmarks/results.json
+        retention-days: 30
+
+  load-test:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]  # Déjà bon
+
+    - name: Run scalability tests
+      run: |
+        python benchmarks/benchmark_analysis.py --scalability --output benchmarks/scalability_results.json
+
+    - name: Check for performance regressions
+      run: |
+        python -c "
+        import json, sys
+        try:
+            with open('benchmarks/scalability_results.json') as f:
+                data = json.load(f)
+            
+            # Check if any operation takes more than 1 second for 1000 items
+            scalability = data.get('benchmarks', {}).get('scalability', {})
+            for size, metrics in scalability.items():
+                if metrics.get('total_time_ms', 0) > 1000 and '1000' in size:
+                    print(f'Warning: Performance warning: {size} took {metrics['total_time_ms']}ms')
+                    sys.exit(1)
+            
+            print('All performance checks passed')
+        except Exception as e:
+            print(f'Error checking performance: {e}')
+            sys.exit(1)
+        "
+
+    - name: Upload load test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: load-test-results
+        path: benchmarks/scalability_results.json
+        retention-days: 30

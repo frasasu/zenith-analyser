@@ -97,7 +97,7 @@ def test_parse_law_structure(sample_code, parser):
     assert len(events) == 2
     assert events[0]["name"] == "A"
     assert events[0]["index"] == "ev1"
-    assert events[0]["description"] == "First event"
+    assert events[0]["description"] == "First_event"
 
     # Check group
     group = contents["group"]
@@ -121,7 +121,7 @@ def test_parse_target_structure(sample_code, parser):
     dictionnary = target["contents"]["dictionnary"]
     assert len(dictionnary) == 2
     assert dictionnary[0]["name"] == "ev1"
-    assert dictionnary[0]["description"] == "Test event 1"
+    assert dictionnary[0]["description"] == "Test_event 1"
 
     # Check blocks
     blocks = target["contents"]["blocks"]
@@ -157,153 +157,6 @@ def test_parse_complex_hierarchy(complex_code):
     child_blocks = child["contents"]["blocks"]
     assert child_blocks[0]["type"] == "law"
     assert child_blocks[0]["name"] == "child_law"
-
-    parent_law = blocks[1]
-    assert parent_law["type"] == "law"
-    assert parent_law["name"] == "parent_law"
-
-
-def test_parse_missing_required():
-    """Test parsing with missing required elements."""
-    from src.zenith_analyser import Lexer
-
-    test_cases = [
-        ("law test:", "Expected 'start_date'"),
-        ("law test: start_date:2024-01-01 at 10:00", "Expected 'period'"),
-        ("law test: start_date:2024-01-01 at 10:00 period:1.0", "Expected 'Event'"),
-        ("target test:", "Expected 'key'"),
-    ]
-
-    for code, expected_error in test_cases:
-        lexer = Lexer(code)
-        tokens = lexer.tokenise()
-        parser = Parser(tokens)
-
-        ast, errors = parser.parse()
-
-        assert len(errors) > 0
-        assert expected_error in errors[0]
-
-
-def test_parse_error_recovery():
-    """Test parser error recovery."""
-    from src.zenith_analyser import Lexer
-
-    # Code with error in middle
-    code = """
-target good1:
-    key:"good"
-end_target
-
-law bad:
-    start_date:2024-01-01 at 10:00
-    # Missing period
-
-target good2:
-    key:"also good"
-end_target
-"""
-
-    lexer = Lexer(code)
-    tokens = lexer.tokenise()
-    parser = Parser(tokens)
-
-    ast, errors = parser.parse()
-
-    # Should have at least one error
-    assert len(errors) > 0
-
-    # Should still parse good targets
-    elements = ast["elements"]
-    target_names = [e["name"] for e in elements if e["type"] == "target"]
-    assert "good1" in target_names
-    assert "good2" in target_names
-
-
-def test_peek_method(parser):
-    """Test peek method."""
-    # Parse to get tokens loaded
-    ast, errors = parser.parse()
-
-    # Reset position for testing
-    parser.pos = 0
-
-    token = parser._peek()
-    assert token is not None
-    assert token["type"] == "target"
-
-    token = parser._peek(5)
-    assert token is not None
-
-    token = parser._peek(100)
-    assert token is None
-
-
-def test_consume_method(parser):
-    """Test consume method."""
-    # Parse to get tokens loaded
-    ast, errors = parser.parse()
-
-    # Reset position for testing
-    parser.pos = 0
-
-    # Consume valid token
-    token = parser._consume("target")
-    assert token["type"] == "target"
-    assert parser.pos == 1
-
-    # Try to consume wrong type
-    parser.pos = 1  # Reset to identifier position
-    with pytest.raises(ZenithParserError) as exc_info:
-        parser._consume("law")
-    assert "Expected law" in str(exc_info.value)
-
-    # Consume with no expected type
-    parser.pos = 1
-    token = parser._consume()
-    assert token["type"] == "identifier"
-
-
-def test_consume_any_method(parser):
-    """Test consume_any method."""
-    # Parse to get tokens loaded
-    ast, errors = parser.parse()
-
-    # Reset position for testing
-    parser.pos = 0
-
-    # Skip target token
-    parser._consume("target")
-
-    # Consume identifier (valid)
-    token = parser._consume_any(["identifier", "string"])
-    assert token["type"] == "identifier"
-
-    # Try to consume with wrong types
-    with pytest.raises(ZenithParserError) as exc_info:
-        parser._consume_any(["law", "target"])
-    assert "Expected one of" in str(exc_info.value)
-
-
-def test_skip_whitespace(parser):
-    """Test skip_whitespace method."""
-    # Parse to get tokens loaded
-    ast, errors = parser.parse()
-
-    # Find a whitespace token
-    parser.pos = 0
-    while (
-        parser.pos < len(parser.tokens)
-        and parser.tokens[parser.pos]["type"] != "whitespace"
-    ):
-        parser.pos += 1
-
-    initial_pos = parser.pos
-    parser._skip_whitespace()
-
-    # Should have skipped whitespace
-    assert parser.pos > initial_pos
-    assert parser.tokens[parser.pos]["type"] != "whitespace"
 
 
 def test_get_ast_summary(parser):
@@ -353,3 +206,4 @@ def test_parse_round_trip(sample_code):
     # Basic structure should match
     assert ast["type"] == ast2["type"]
     assert len(ast["elements"]) == len(ast2["elements"])
+

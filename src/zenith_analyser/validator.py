@@ -209,7 +209,7 @@ class Validator:
 
             # Check for statements outside blocks
             if not in_law and not in_target:
-                if ":" in stripped and not stripped.startswith(("law", "target", "#")):
+                if ":" in stripped and not stripped.startswith(("law", "target")):
                     if not any(stripped.startswith(f"{kw}:") for kw in ZENITH_KEYWORDS):
                         self.errors.append(
                             f"Line {i}: Statement outside law or target block"
@@ -319,6 +319,8 @@ class Validator:
                 if "blocks" in contents:
                     for block in contents["blocks"]:
                         self._validate_ast_structure(block, depth + 1)
+        else:
+            self.errors.append(f"Unknown AST node type: '{node_type}'")
 
     def _calculate_ast_size(self, node: Dict[str, Any]) -> int:
         """Calculate the size of the AST."""
@@ -456,3 +458,4 @@ class Validator:
                         f"Invalid chronodispersal in event {i}: ,"
                         f"'{event['chronodispersal']}'"
                     )
+

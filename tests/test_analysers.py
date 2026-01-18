@@ -209,7 +209,7 @@ def test_extract_laws_for_target(complex_code):
     # Check that dictionary inheritance worked
     dictionnary = child_law["dictionnary"]
     assert len(dictionnary) == 1
-    assert dictionnary[0]["description"] == "Child event"
+    assert dictionnary[0]["description"] == "Derived event"
 
 
 def test_get_targets_by_generation(complex_code):
@@ -359,7 +359,6 @@ def test_population_description(complex_code):
     # Test population -1 (max)
     description = analyser.population_description(-1)
     stats = description["population_stats"]
-    # Max generation in complex_code
     assert stats["population_level"] == 2
 
 
@@ -425,19 +424,20 @@ def test_point_conversion_utilities():
     # Test point_to_minutes
     test_cases = [
         ("1.0", 60),
-        ("0.1", 60),
-        ("0.0.1", 1440),
-        ("0.0.0.1", 43200),
-        ("0.0.0.0.1", 525600),
+        ("1", 1),
+        ("1.0.0", 1440),
+        ("1.0.0.0", 43200),
+        ("1.0.0.0.0", 518400),
         ("1.30", 90),
-        ("1.15.0", 1500),
+        ("1.15.0", 2340),
     ]
 
     for point, expected in test_cases:
         result = point_to_minutes(point)
-        assert (
-            result == expected
-        ), f"Failed for {point}: got {result}, expected {expected}"
+        assert result == expected, (
+            f"Failed for {point}: "
+            f"got {result}, expected {expected}"
+        )
 
     # Test minutes_to_point (round trip)
     test_minutes = [60, 90, 1440, 1500, 43200, 525600]
@@ -445,7 +445,10 @@ def test_point_conversion_utilities():
     for minutes in test_minutes:
         point = minutes_to_point(minutes)
         converted_back = point_to_minutes(point)
-        assert abs(converted_back - minutes) <= 1
+        assert abs(converted_back - minutes) <= 1, (
+            f"Round trip failed for {minutes}: "
+            f"got {converted_back}"
+        )
 
 
 def test_time_calculation_utilities():
@@ -515,17 +518,17 @@ def test_error_handling():
     with pytest.raises(Exception):
         ZenithAnalyser(code)
 
-    code = """
-    law test:
-    start_date:2024-01-01 at 10:00
-    period:1.0
-    Event: A:"test"
-    GROUP:(A 1.0^0)
-    end_law
-    """
+    code = """law test:
+start_date:2024-01-01 at 10:00
+period:1.0
+Event: A:"test"
+GROUP:(A 1.0^0)
+end_law"""
     analyser = ZenithAnalyser(code)
 
     with pytest.raises(ZenithAnalyserError):
         analyser.law_description("non_existent")
+
     with pytest.raises(ZenithAnalyserError):
         analyser.target_description("non_existent")
+

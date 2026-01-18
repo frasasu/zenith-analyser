@@ -22,15 +22,15 @@ def sample_code():
 target test_target:
     key:"Test key"
     dictionnary:
-        ev1:"Test event 1"
-        ev2:"Test event 2"
+        ev1:"Test_event 1"
+        ev2:"Test_event 2"
 
     law test_law:
         start_date:2024-01-01 at 10:00
         period:1.0
         Event:
-            A[ev1]:"First event"
-            B[ev2]:"Second event"
+            A[ev1]:"First_event"
+            B[ev2]:"Second_event"
         GROUP:(A 30^15 - B 15^0)
     end_law
 end_target
@@ -44,29 +44,28 @@ def complex_code():
 target parent:
     key:"Parent key"
     dictionnary:
-        base:"Base event"
+        base:"Base_event"
 
     target child:
         key:"Child key"
         dictionnary:
-            derived[base]:"Derived event"
+            derived[base]:"Derived_event"
 
         law child_law:
             start_date:2024-01-01 at 09:00
             period:2.0
             Event:
-                X[derived]:"Child event"
+                X[derived]:"Child_event"
             GROUP:(X 2.0^0)
         end_law
-    end_target
-
-    law parent_law:
+            law parent_law:
         start_date:2024-01-01 at 14:00
         period:1.0
         Event:
-            Y[base]:"Parent event"
+            Y[base]:"Parent_event"
         GROUP:(Y 1.0^0)
     end_law
+    end_target
 end_target
 """
 
