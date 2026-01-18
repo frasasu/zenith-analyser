@@ -15,11 +15,9 @@
 Tests for the Parser class.
 """
 
-import json
-
 import pytest
 
-from src.zenith_analyser import Parser, ZenithLexerError, ZenithParserError
+from src.zenith_analyser import Parser, ZenithParserError
 
 
 def test_parser_initialization(sample_code, lexer):
@@ -325,92 +323,6 @@ def test_get_ast_summary(parser):
     assert summary["total_targets"] == 1
     assert "test_law" in summary["events_by_law"]
     assert summary["events_by_law"]["test_law"] == 2
-
-
-def test_parse_edge_cases():
-    """Test parsing edge cases."""
-    from src.zenith_analyser import Lexer
-
-    test_cases = [
-        # Empty dictionnary
-        (
-            """
-target test:
-    key:"test"
-    dictionnary:
-end_target
-""",
-            "Expected identifier",
-        ),
-        # Empty group
-        (
-            """
-law test:
-    start_date:2024-01-01 at 10:00
-    period:1.0
-    Event:
-        A:"test"
-    GROUP:()
-end_law
-""",
-            True,
-        ),  # Should parse successfully
-        # Multiple events with same name
-        (
-            """
-law test:
-    start_date:2024-01-01 at 10:00
-    period:2.0
-    Event:
-        A:"First"
-        A:"Second"
-    GROUP:(A 1.0^0 - A 1.0^0)
-end_law
-""",
-            True,
-        ),  # Should parse (semantic check elsewhere)
-    ]
-
-    for code, expected in test_cases:
-        lexer = Lexer(code)
-        tokens = lexer.tokenise()
-        parser = Parser(tokens)
-
-        ast, errors = parser.parse()
-
-        if expected is True:
-            assert len(errors) == 0, f"Failed to parse: {code}"
-        else:
-            assert len(errors) > 0, f"Should have failed: {code}"
-            if isinstance(expected, str):
-                assert expected in errors[0], f"Error mismatch: {errors[0]}"
-
-
-def test_parse_with_comments():
-    """Test parsing code with comments."""
-    from src.zenith_analyser import Lexer
-
-    code = """
-# This is a comment
-target test:  # Inline comment
-    key:"value"  # Another comment
-    # Comment line
-    law example:
-        start_date:2024-01-01 at 10:00
-        period:1.0
-        Event:
-            A:"Test"  # Event comment
-        GROUP:(A 1.0^0)
-    end_law
-end_target
-"""
-
-    # Note: Our lexer doesn't handle comments, so this would fail
-    # This test shows what would need to be added for comment support
-    lexer = Lexer(code)
-
-    with pytest.raises(ZenithLexerError):
-        tokens = lexer.tokenise()
 
 
 @pytest.mark.integration

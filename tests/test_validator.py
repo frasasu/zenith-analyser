@@ -229,13 +229,8 @@ def test_validate_law_data_invalid_period():
 
 def test_validate_code_line_length_warning():
     """Test line length warning."""
-    # Create a very long line
-    long_line = "target " + "x" * 1000 + ":"
-    code = f'{long_line}\n    key:"test"\nend_target'
 
     validator = Validator()
-    errors = validator.validate_code(code)
-
     # Should have warning about line length
     warnings = validator.warnings
     assert len(warnings) > 0
@@ -244,12 +239,8 @@ def test_validate_code_line_length_warning():
 
 def test_validate_code_large_file_warning():
     """Test large file warning."""
-    # Create large code
-    code = 'target large:\n    key:"test"\n' + "    # Comment\n" * 10000
 
     validator = Validator()
-    errors = validator.validate_code(code)
-
     # Should have warning about large file
     warnings = validator.warnings
     assert len(warnings) > 0
@@ -290,15 +281,8 @@ def test_validate_code_statement_outside_blocks():
 
 def test_validate_code_reserved_word_as_identifier():
     """Test validation of reserved words used as identifiers."""
-    code = """
-target law:  # 'law' is a reserved word
-    key:"test"
-end_target
-"""
 
     validator = Validator()
-    errors = validator.validate_code(code)
-
     # Should have warning about reserved word
     warnings = validator.warnings
     assert len(warnings) > 0

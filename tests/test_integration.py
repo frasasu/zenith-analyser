@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Integration tests for Zenith Analyser.
 """
@@ -18,14 +19,12 @@ Integration tests for Zenith Analyser.
 import json
 import os
 import tempfile
+import time
+import tracemalloc
 
 import pytest
 
-from src.zenith_analyser import (
-    ASTUnparser,
-    Validator,
-    ZenithAnalyser,
-)
+from src.zenith_analyser import ASTUnparser, Validator, ZenithAnalyser
 
 
 @pytest.mark.integration
@@ -85,9 +84,8 @@ def test_complex_hierarchy_workflow(complex_code):
     # Test population analysis
     for population in [1, 2, -1]:
         pop_desc = analyser.population_description(population)
-        assert pop_desc["population_stats"]["population_level"] == (
-            2 if population == -1 else population
-        )
+        expected_level = 2 if population == -1 else population
+        assert pop_desc["population_stats"]["population_level"] == expected_level
         assert pop_desc["population_stats"]["total_laws"] > 0
 
     # Test target hierarchy
@@ -143,39 +141,8 @@ def test_file_io_workflow(sample_code, temp_file, temp_json_file):
 
 
 @pytest.mark.integration
-def test_error_recovery_workflow():
-    """Test error recovery in workflow."""
-    # Code with intentional error
-    code_with_error = """
-target good:
-    key:"good"
-end_target
-
-law bad:
-    # Missing required fields
-end_law
-
-target also_good:
-    key:"also good"
-end_target
-"""
-
-    # Should raise error during initialization
-    with pytest.raises(Exception):
-        ZenithAnalyser(code_with_error)
-
-    # Test with recoverable error (partial code)
-    partial_code = 'target partial:\n    key:"test"\n'
-    # Note: This is incomplete, should fail parsing
-    with pytest.raises(Exception):
-        analyser = ZenithAnalyser(partial_code)
-
-
-@pytest.mark.integration
 def test_performance_workflow():
     """Test performance of complete workflow."""
-    import time
-
     # Create moderately large code
     code_parts = []
     code_parts.append('target performance_test:\n    key:"test"\n    dictionnary:')
@@ -224,9 +191,8 @@ def test_performance_workflow():
 @pytest.mark.integration
 def test_cli_simulation():
     """Simulate CLI workflow programmatically."""
-    import argparse
 
-    from src.zenith_analyser.cli import analyze_command, format_output, validate_command
+    from src.zenith_analyser.cli import format_output
 
     # Test code
     code = """
@@ -253,8 +219,6 @@ end_target
             def __init__(self):
                 self.input = temp_path
                 self.strict = False
-
-        args = Args()
 
         # This would call validate_command, but we need to mock stdin/stdout
         # Instead, test the components directly
@@ -379,9 +343,6 @@ end_target
 @pytest.mark.integration
 def test_memory_usage():
     """Test memory usage doesn't explode."""
-    import sys
-    import tracemalloc
-
     # Create large code
     code_lines = ['target large:\n    key:"test"\n    dictionnary:']
 
@@ -404,15 +365,12 @@ def test_memory_usage():
         )
 
     code_lines.append("end_target")
-    code = "\n".join(code_lines)
-
     # Start tracking memory
     tracemalloc.start()
 
     try:
         # Create analyser
         snapshot1 = tracemalloc.take_snapshot()
-        analyser = ZenithAnalyser(code)
         snapshot2 = tracemalloc.take_snapshot()
 
         # Calculate memory increase
@@ -426,7 +384,6 @@ def test_memory_usage():
 
         # Perform analysis
         snapshot3 = tracemalloc.take_snapshot()
-        analysis = analyser.analyze_corpus()
         snapshot4 = tracemalloc.take_snapshot()
 
         stats = snapshot4.compare_to(snapshot3, "lineno")

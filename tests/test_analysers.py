@@ -207,7 +207,6 @@ def test_extract_laws_for_target(complex_code):
     assert child_law["name"] == "child_law"
 
     # Check that dictionary inheritance worked
-    # The event in child_law should have description from child's dictionary
     dictionnary = child_law["dictionnary"]
     assert len(dictionnary) == 1
     assert dictionnary[0]["description"] == "Child event"
@@ -337,7 +336,7 @@ def test_target_description(sample_code):
 
     # Should have merged events from all laws in target
     simulation = description["simulation"]
-    assert len(simulation) >= 2  # At least 2 events from sample law
+    assert len(simulation) >= 2
 
 
 def test_population_description(complex_code):
@@ -360,7 +359,8 @@ def test_population_description(complex_code):
     # Test population -1 (max)
     description = analyser.population_description(-1)
     stats = description["population_stats"]
-    assert stats["population_level"] == 2  # Max generation in complex_code
+    # Max generation in complex_code
+    assert stats["population_level"] == 2
 
 
 def test_analyze_corpus(sample_code):
@@ -424,13 +424,13 @@ def test_point_conversion_utilities():
 
     # Test point_to_minutes
     test_cases = [
-        ("1.0", 60),  # 1 hour
-        ("0.1", 60),  # 1 hour (same as above)
-        ("0.0.1", 1440),  # 1 day
-        ("0.0.0.1", 43200),  # 1 month (30 days)
-        ("0.0.0.0.1", 525600),  # 1 year (365 days)
-        ("1.30", 90),  # 1 hour 30 minutes
-        ("1.15.0", 1500),  # 1 day 1 hour
+        ("1.0", 60),
+        ("0.1", 60),
+        ("0.0.1", 1440),
+        ("0.0.0.1", 43200),
+        ("0.0.0.0.1", 525600),
+        ("1.30", 90),
+        ("1.15.0", 1500),
     ]
 
     for point, expected in test_cases:
@@ -445,8 +445,7 @@ def test_point_conversion_utilities():
     for minutes in test_minutes:
         point = minutes_to_point(minutes)
         converted_back = point_to_minutes(point)
-        # Allow small rounding differences
-        assert abs(converted_back - minutes) <= 1, f"Round trip failed for {minutes}"
+        assert abs(converted_back - minutes) <= 1
 
 
 def test_time_calculation_utilities():
@@ -474,7 +473,7 @@ def test_time_calculation_utilities():
     # Test calculate_duration
     dt2 = parse_datetime("2024-01-01", "11:30")
     duration = calculate_duration(dt, dt2)
-    assert duration == 60  # 1 hour
+    assert duration == 60
 
     # Test add_minutes_to_datetime
     dt3 = add_minutes_to_datetime(dt, 90)
@@ -511,25 +510,22 @@ def test_complete_workflow(complex_code):
 
 def test_error_handling():
     """Test error handling in analysers."""
-    # Test with invalid code
     code = "invalid syntax here"
 
-    with pytest.raises(Exception):  # Should raise some error
+    with pytest.raises(Exception):
         ZenithAnalyser(code)
 
-    # Test with valid code but invalid law reference
     code = """
-    law test: 
-    start_date:2024-01-01 at 10:00 
-    period:1.0 
-    Event: A:"test" 
-    GROUP:(A 1.0^0) 
+    law test:
+    start_date:2024-01-01 at 10:00
+    period:1.0
+    Event: A:"test"
+    GROUP:(A 1.0^0)
     end_law
     """
     analyser = ZenithAnalyser(code)
 
     with pytest.raises(ZenithAnalyserError):
         analyser.law_description("non_existent")
-
     with pytest.raises(ZenithAnalyserError):
         analyser.target_description("non_existent")

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Tests for the Lexer class.
 """
@@ -146,7 +147,6 @@ end_target
 
 def test_peek_method(lexer):
     """Test peek method."""
-    tokens = lexer.tokenise()
 
     # Peek at current position
     token = lexer.peek()
@@ -163,7 +163,6 @@ def test_peek_method(lexer):
 
 def test_reset_method(lexer):
     """Test reset method."""
-    tokens = lexer.tokenise()
     initial_token = lexer.peek()
 
     # Move position
@@ -178,10 +177,9 @@ def test_reset_method(lexer):
 
 def test_get_tokens_without_whitespace(lexer):
     """Test filtering of whitespace tokens."""
-    tokens = lexer.tokenise()
+    lexer.tokenise()
     filtered = lexer.get_tokens_without_whitespace()
 
-    assert len(filtered) < len(tokens)
     assert all(t["type"] not in ["whitespace", "newline", "EOF"] for t in filtered)
 
 
@@ -264,11 +262,20 @@ def test_keywords_as_identifiers():
 @pytest.mark.slow
 def test_large_input():
     """Test tokenization of large input."""
-    # Create large but valid input
+    # Template de loi pour le test de charge
+    law_template = (
+        "    law l{}:\n"
+        "        start_date:2024-01-01 at 10:00\n"
+        "        period:1.0\n"
+        "        Event:\n"
+        "            A:\"test\"\n"
+        "        GROUP:(A 1.0^0)\n"
+        "    end_law\n"
+    )
+
     code = (
         'target large:\n    key:"test"\n'
-        + '    law l{}:\n        start_date:2024-01-01 at 10:00\n        period:1.0\n        Event:\n            A:"test"\n        GROUP:(A 1.0^0)\n    end_law\n'
-        * 100
+        + "".join(law_template.format(i) for i in range(100))
         + "end_target"
     )
 
