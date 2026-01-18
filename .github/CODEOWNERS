@@ -1,6 +1,9 @@
 
 * @frasasu
 
+# PROTECTION DU FICHIER CODEOWNERS
+/.github/CODEOWNERS    @frasasu
+
 # -----------------------------------------------------------------------------
 # CODE SOURCE ET LOGIQUE
 # -----------------------------------------------------------------------------
