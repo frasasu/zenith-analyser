@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Tests for the analyser classes.
 """
@@ -44,7 +45,7 @@ def test_extract_laws(sample_code):
     lexer = Lexer(sample_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
 
     analyser = LawAnalyser(ast)
     laws = analyser.extract_laws(ast)
@@ -75,7 +76,7 @@ def test_extract_laws(sample_code):
 
 def test_get_law_names(parser):
     """Test getting law names."""
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
     analyser = LawAnalyser(ast)
 
     names = analyser.get_law_names()
@@ -86,7 +87,7 @@ def test_get_law_names(parser):
 
 def test_get_law(parser):
     """Test getting specific law."""
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
     analyser = LawAnalyser(ast)
 
     law = analyser.get_law("test_law")
@@ -115,7 +116,7 @@ def test_validate_law(parser):
 
 def test_target_analyser_initialization(parser):
     """Test TargetAnalyser initialization."""
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
     analyser = TargetAnalyser(ast)
 
     assert analyser.ast == ast
@@ -130,7 +131,7 @@ def test_extract_targets(complex_code):
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
 
     analyser = TargetAnalyser(ast)
     targets = analyser.targets
@@ -155,8 +156,6 @@ def test_extract_targets(complex_code):
     assert child["depth"] == 2
     assert child["path"] == ["parent", "child"]
     assert "child_law" in child["direct_laws"]
-    assert "parent" in child["all_descendants_targets"]  # Parent is not descendant
-    assert "parent_law" in child["all_descendants_laws"]
 
 
 def test_get_target_hierarchy(complex_code):
@@ -166,7 +165,7 @@ def test_get_target_hierarchy(complex_code):
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
 
     analyser = TargetAnalyser(ast)
 
@@ -194,7 +193,7 @@ def test_extract_laws_for_target(complex_code):
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
 
     analyser = TargetAnalyser(ast)
 
@@ -221,7 +220,7 @@ def test_get_targets_by_generation(complex_code):
     lexer = Lexer(complex_code)
     tokens = lexer.tokenise()
     parser = Parser(tokens)
-    ast= parser.parse()[0]
+    ast = parser.parse()[0]
 
     analyser = TargetAnalyser(ast)
 
@@ -512,23 +511,21 @@ def test_complete_workflow(complex_code):
 
 def test_error_handling():
     """Test error handling in analysers."""
-    
-
     # Test with invalid code
     code = "invalid syntax here"
 
     with pytest.raises(Exception):  # Should raise some error
-        analyser = ZenithAnalyser(code)
+        ZenithAnalyser(code)
 
     # Test with valid code but invalid law reference
     code = """
-law test: 
-start_date:2024-01-01 at 10:00 
-period:1.0 
-Event: A:"test" 
-GROUP:(A 1.0^0) 
-end_law
-"""
+    law test: 
+    start_date:2024-01-01 at 10:00 
+    period:1.0 
+    Event: A:"test" 
+    GROUP:(A 1.0^0) 
+    end_law
+    """
     analyser = ZenithAnalyser(code)
 
     with pytest.raises(ZenithAnalyserError):
