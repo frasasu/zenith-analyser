@@ -42,13 +42,4 @@ zenith = "zenith_analyser.cli:main"
 where = ["src"]
 namespaces = false
 
-[tool.black]
-line-length = 88
-target-version = ['py38']
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = [
-    "E203",   # whitespace before ':', Black le gère différemment
-    "W503",   # line break before binary operator (Black préfère après)
-]

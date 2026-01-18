@@ -4,16 +4,12 @@ Pytest configuration and fixtures for Zenith Analyser tests.
 
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
 
 from src.zenith_analyser import (
-    ASTUnparser,
-    LawAnalyser,
     Lexer,
     Parser,
-    TargetAnalyser,
     Validator,
     ZenithAnalyser,
 )

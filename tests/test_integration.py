@@ -18,7 +18,6 @@ Integration tests for Zenith Analyser.
 import json
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
 
@@ -26,7 +25,6 @@ from src.zenith_analyser import (
     ASTUnparser,
     Validator,
     ZenithAnalyser,
-    ZenithAnalyserError,
 )
 
 
@@ -164,7 +162,7 @@ end_target
 
     # Should raise error during initialization
     with pytest.raises(Exception):
-        analyser = ZenithAnalyser(code_with_error)
+        ZenithAnalyser(code_with_error)
 
     # Test with recoverable error (partial code)
     partial_code = 'target partial:\n    key:"test"\n'
