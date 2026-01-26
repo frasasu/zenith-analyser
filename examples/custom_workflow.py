@@ -108,7 +108,7 @@ end_target
             }
 
             # Update summary
-            hours = analysis["total_duration_minutes"] / 60
+            hours = analysis["sum_duration"] / 60
             summary["total_hours"] += hours
             summary["projects"].append(
                 {
@@ -257,7 +257,7 @@ end_target
                     "id": f"law_{law_name}",
                     "text": law_name,
                     "start_date": law_data["start_date"],
-                    "duration": law_data["total_duration_minutes"] / 60 / 8,  # in days
+                    "duration": law_data["sum_duration"] / 60 / 8,  # in days
                     "progress": 0.5,
                     "parent": 0,
                     "type": "project",
@@ -884,10 +884,10 @@ end_target
         if isinstance(law_data, dict) and "error" not in law_data:
             finding = {
                 "law": law_name,
-                "duration_hours": law_data["total_duration_minutes"] / 60,
+                "duration_hours": law_data["sum_duration"] / 60,
                 "efficiency": (
-                    law_data["coherence_total_minutes"]
-                    / law_data["total_duration_minutes"]
+                    law_data["coherence"]
+                    / law_data["sum_duration"]
                 )
                 * 100,
             }
@@ -915,13 +915,13 @@ end_target
         law_desc = analyser.law_description(law_name)
         technical_report["law_analyses"][law_name] = {
             "metrics": {
-                "duration_hours": law_desc["total_duration_minutes"] / 60,
+                "duration_hours": law_desc["sum_duration"] / 60,
                 "event_count": law_desc["event_count"],
                 "unique_events": len(law_desc["events"]),
-                "coherence_ratio": law_desc["coherence_total_minutes"]
-                / law_desc["total_duration_minutes"],
-                "dispersal_ratio": law_desc["dispersal_total_minutes"]
-                / law_desc["total_duration_minutes"],
+                "coherence_ratio": law_desc["coherence"]
+                / law_desc["sum_duration"],
+                "dispersal_ratio": law_desc["dispersal"]
+                / law_desc["sum_duration"],
             },
             "timeline": [
                 {
@@ -969,7 +969,7 @@ end_target
             "event": "TOTAL",
             "start": f"{law_desc['start_date']}T{law_desc['start_time']}",
             "end": f"{law_desc['end_datetime']['date']}T{law_desc['end_datetime']['time']}",
-            "duration_hours": law_desc["total_duration_minutes"] / 60,
+            "duration_hours": law_desc["sum_duration"] / 60,
             "type": "law",
         }
         visualization_data["timeline_data"].append(law_timeline)

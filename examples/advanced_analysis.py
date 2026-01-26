@@ -100,7 +100,7 @@ end_target
             "%Y-%m-%d %H:%M",
         )
 
-        duration_hours = desc["total_duration_minutes"] / 60
+        duration_hours = desc["sum_duration"] / 60
         print(f"\n{law_name}:")
         print(f"  Start: {start.strftime('%Y-%m-%d %H:%M')}")
         print(f"  End: {end.strftime('%Y-%m-%d %H:%M')}")
@@ -354,7 +354,7 @@ end_target
             "%Y-%m-%d %H:%M",
         )
 
-        duration_days = desc["total_duration_minutes"] / 60 / 8  # 8-hour days
+        duration_days = desc["sum_duration"] / 60 / 8  # 8-hour days
         print(f"\n{law_name}:")
         print(f"  Start: {start_dt.strftime('%Y-%m-%d')}")
         print(f"  End: {end_dt.strftime('%Y-%m-%d')}")
@@ -364,7 +364,7 @@ end_target
     # Calculate project statistics
     print("\n\nProject Statistics:")
 
-    total_duration = sum(p["total_duration_minutes"] for p in phases.values())
+    total_duration = sum(p["sum_duration"] for p in phases.values())
     total_days = total_duration / 60 / 8  # 8-hour days
 
     start_dates = [
@@ -392,9 +392,9 @@ end_target
     print(f"Efficiency: {efficiency:.1f}% (work days / calendar days)")
 
     # Identify critical path (longest phase)
-    longest_phase = max(phases.items(), key=lambda x: x[1]["total_duration_minutes"])
+    longest_phase = max(phases.items(), key=lambda x: x[1]["sum_duration"])
     print(f"\nCritical path (longest phase): {longest_phase[0]}")
-    print(f"  Duration: {longest_phase[1]['total_duration_minutes']/60/8:.1f} days")
+    print(f"  Duration: {longest_phase[1]['sum_duration']/60/8:.1f} days")
 
     return phases
 
@@ -461,11 +461,11 @@ end_law
         results[scenario_name] = desc
 
         print(f"\n{scenario_name}:")
-        print(f"  Total duration: {desc['total_duration_minutes']/60:.1f} hours")
-        print(f"  Work time: {desc['coherence_total_minutes']/60:.1f} hours")
-        print(f"  Gap time: {desc['dispersal_total_minutes']/60:.1f} hours")
+        print(f"  Total duration: {desc['sum_duration']/60:.1f} hours")
+        print(f"  Work time: {desc['coherence']/60:.1f} hours")
+        print(f"  Gap time: {desc['dispersal']/60:.1f} hours")
         print(
-            f"  Efficiency: {(desc['coherence_total_minutes']/desc['total_duration_minutes'])*100:.1f}%"
+            f"  Efficiency: {(desc['coherence']/desc['sum_duration'])*100:.1f}%"
         )
 
     # Comparative analysis
@@ -475,19 +475,19 @@ end_law
     for scenario_name, desc in results.items():
         if scenario_name != "Original":
             time_diff = (
-                desc["total_duration_minutes"] - original["total_duration_minutes"]
+                desc["sum_duration"] - original["sum_duration"]
             )
             efficiency_diff = (
-                (desc["coherence_total_minutes"] / desc["total_duration_minutes"])
+                (desc["sum_duration"] / desc["sum_duration"])
                 - (
-                    original["coherence_total_minutes"]
-                    / original["total_duration_minutes"]
+                    original["coherence"]
+                    / original["sum_duration"]
                 )
             ) * 100
 
             print(f"\n{scenario_name} vs Original:")
             print(
-                f"  Time difference: {time_diff/60:+.1f} hours ({time_diff/original['total_duration_minutes']*100:+.1f}%)"
+                f"  Time difference: {time_diff/60:+.1f} hours ({time_diff/original['sum_duration']*100:+.1f}%)"
             )
             print(f"  Efficiency difference: {efficiency_diff:+.1f}%")
 

@@ -43,7 +43,7 @@ end_law
     result = analyser.law_description("simple_day")
 
     print(f"Law: {result['name']}")
-    print(f"Duration: {result['total_duration_minutes']} minutes")
+    print(f"Duration: {result['sum_duration']} minutes")
     print(f"Events: {result['event_count']}")
     print("\nTimeline:")
     for event in result["simulation"]:
@@ -100,7 +100,7 @@ end_target
     target_result = analyser.target_description("project")
     print(f"Target: {target_result['name']}")
     print(f"Total events: {len(target_result['simulation'])}")
-    print(f"Total duration: {target_result['total_duration_minutes']} minutes")
+    print(f"Total duration: {target_result['sum_duration']} minutes")
 
     # Show hierarchy
     print("\nTarget Hierarchy:")
@@ -162,13 +162,10 @@ end_target
 
     # Analyze different population levels
     for population in [1, 2, 3]:
-        result = analyser.population_description(population)
-        stats = result["population_stats"]
+        stats = analyser.population_description(population)
 
         print(f"\nPopulation {population}:")
-        print(f"  Laws: {stats['total_laws']}")
-        print(f"  Events: {stats['total_events']}")
-        print(f"  Duration: {stats['total_duration_minutes']} minutes")
+        print(f"  Duration: {stats['sum_duration']} minutes")
 
 
 def example_4_export_and_import():
@@ -206,7 +203,7 @@ end_law
     law_name = list(analysis["laws"].keys())[0]
     law_data = analysis["laws"][law_name]
     print(f"\nSample law '{law_name}':")
-    print(f"  Duration: {law_data.get('total_duration_minutes', 0)} minutes")
+    print(f"  Duration: {law_data.get('sum_duration', 0)} minutes")
     print(f"  Events: {law_data.get('event_count', 0)}")
 
     return analysis
@@ -239,8 +236,8 @@ end_law
     events = result["simulation"]
 
     print(f"Schedule: {result['name']}")
-    print(f"Total work hours: {result['total_duration_minutes'] / 60:.1f} hours")
-    print(f"Daily average: {result['total_duration_minutes'] / 5 / 60:.1f} hours/day")
+    print(f"Total work hours: {result['sum_duration'] / 60:.1f} hours")
+    print(f"Daily average: {result['sum_duration'] / 5 / 60:.1f} hours/day")
 
     print("\nDaily breakdown:")
     for event in events:
@@ -248,7 +245,7 @@ end_law
         print(f"  {event['event_name']}: {hours:.1f} hours")
 
     # Calculate gaps (dispersal)
-    total_gap = result["dispersal_total_minutes"]
+    total_gap = result["dispersal"]
     print(f"\nTotal gap time: {total_gap / 60:.1f} hours")
     print(
         f"Average daily gap: {total_gap / 4 / 60:.1f} hours/day"

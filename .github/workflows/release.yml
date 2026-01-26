@@ -111,7 +111,7 @@ jobs:
         id: generate_release_notes
         run: |
           VERSION="${{ steps.get_version_direct.outputs.VERSION }}"
-          
+
           # Utilisation de "python - " pour accepter les arguments avec heredoc
           python - << 'EOF' "$VERSION" > release_notes.txt
           import re, sys
