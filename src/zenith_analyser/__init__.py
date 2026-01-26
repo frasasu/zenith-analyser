@@ -27,7 +27,7 @@ __copyright__ = "Copyright 2026 François TUMUSAVYEYESU"
 
 from .analysers import LawAnalyser, TargetAnalyser, ZenithAnalyser
 from .metrics import ZenithMetrics
-from .visuals import  ZenithVisualizer
+from .visuals import ZenithVisualizer
 
 # Constants
 from .constants import TIME_UNITS, TOKEN_TYPES, ZENITH_KEYWORDS

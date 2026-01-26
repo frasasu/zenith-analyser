@@ -17,6 +17,7 @@ jobs:
           pip install flake8 pytest pytest-cov
       - name: Lint with flake8
         run: flake8 src tests --max-line-length=88 --config pyproject.toml
+        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest

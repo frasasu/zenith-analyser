@@ -413,7 +413,8 @@ class TargetAnalyser:
     ) -> Dict[str, Dict[str, Any]]:
         if generation < 1 or generation > self.get_max_generation():
             raise ZenithValidationError(
-                f"Generation level must be at least 1: {generation} or less than {self.get_max_generation()+1}",
+                f"Generation level must be at least 1: "
+                f"{generation} or less than {self.get_max_generation()+1}",
                 validation_type="generation",
             )
 
@@ -650,7 +651,7 @@ class ZenithAnalyser:
         merged_law_data["dictionnary"] = final_dictionnary
 
         return self.law_description_data(target_name, merged_law_data)
-    
+
 
     def law_description(self, name: str, population: int = 0) -> Dict[str, Any]:
         """
@@ -864,7 +865,9 @@ class ZenithAnalyser:
             "events": list(event_metrics.keys()),
         }
 
-    def population_description(self, population: int = -1) -> Dict[str, Any]:
+    def population_description(
+            self, population: int = -1
+            ) -> Dict[str, Any]:
         """
         Get description for a population level.
 
@@ -883,17 +886,19 @@ class ZenithAnalyser:
 
         all_simulated_events = []
 
-        for law_name, law_content in transformed_laws.items():
+        for law_name, law_content in \
+        transformed_laws.items():
             simulated_events = []
 
-            dict_map = {item['name']: item['description'] for item in law_content.get('dictionnary', [])}
+            dict_map = {item['name']: item['description'] \
+                        for item in law_content.get('dictionnary', [])}
 
 
             simulated_events = self._simulate_law_events(law_content, dict_map)
             all_simulated_events.extend(simulated_events)
 
         if not transformed_laws:
-            raise ZenithAnalyserError(f"No laws found for population {population}")
+             raise ZenithAnalyserError(f"No laws found for population {population}")
 
         target_name = f"Population_Level_{population}"
 
