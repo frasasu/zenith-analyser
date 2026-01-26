@@ -5,8 +5,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/zenith-analyser.svg)](https://pypi.org/project/zenith-analyser/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI Status](https://github.com/frasasu/zenith-analyser/actions/workflows/ci.yml/badge.svg)](https://github.com/frasasu/zenith-analyser/actions)
-[![Documentation](https://readthedocs.org/projects/zenith-analyser/badge/?version=latest)](https://frasasu.github.io/zenith-analyser-docs/)
-[![Code Coverage](https://codecov.io/gh/yourusername/zenith-analyser/branch/main/graph/badge.svg)](https://codecov.io/gh/frasasu/zenith-analyser)
+
 
 A powerful Python library for analyzing structured temporal laws with events, chronocoherence, chronodispersal, and hierarchical targets.
 
