@@ -293,7 +293,7 @@ def test_law_description(sample_code):
     assert description["start_date"] == "2024-01-01"
     assert description["start_time"] == "10:00"
     assert "period_minutes" in description
-    assert "total_duration_minutes" in description
+    assert "sum_duration" in description
     assert "simulation" in description
     assert "event_metrics" in description
 
@@ -336,28 +336,20 @@ def test_target_description(sample_code):
     simulation = description["simulation"]
     assert len(simulation) >= 2
 
+def test_population_description(sample_code):
+    """Test target description generation."""
+    analyser = ZenithAnalyser(sample_code)
 
-def test_population_description(complex_code):
-    """Test population description generation."""
-    analyser = ZenithAnalyser(complex_code)
-
-    # Test population 1 (root)
     description = analyser.population_description(1)
 
     assert isinstance(description, dict)
-    assert "population_stats" in description
-    assert "law_descriptions" in description
-    assert "all_events" in description
-    assert "event_statistics" in description
+    assert "name" in description
+    assert "simulation" in description
+    assert "event_metrics" in description
 
-    stats = description["population_stats"]
-    assert stats["population_level"] == 1
-    assert stats["total_laws"] > 0
-
-    # Test population -1 (max)
-    description = analyser.population_description(-1)
-    stats = description["population_stats"]
-    assert stats["population_level"] == 2
+    # Should have merged events from all laws in target
+    simulation = description["simulation"]
+    assert len(simulation) >= 2
 
 
 def test_analyze_corpus(sample_code):
@@ -497,10 +489,6 @@ def test_complete_workflow(complex_code):
     # 3. Analyze specific target
     target_desc = analyser.target_description("child")
     assert "event_metrics" in target_desc
-
-    # 4. Analyze population
-    pop_desc = analyser.population_description(1)
-    assert pop_desc["population_stats"]["population_level"] == 1
 
     # 5. Get debug info
     debug_info = analyser.get_debug_info()

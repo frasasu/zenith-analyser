@@ -26,6 +26,8 @@ __license__ = "Apache 2.0"
 __copyright__ = "Copyright 2026 François TUMUSAVYEYESU"
 
 from .analysers import LawAnalyser, TargetAnalyser, ZenithAnalyser
+from .metrics import ZenithMetrics
+from .visuals import  ZenithVisualizer
 
 # Constants
 from .constants import TIME_UNITS, TOKEN_TYPES, ZENITH_KEYWORDS
@@ -55,6 +57,8 @@ __all__ = [
     "ZenithAnalyser",
     "ASTUnparser",
     "Validator",
+    "ZenithVisualizer",
+    "ZenithMetrics",
     # Utility functions
     "point_to_minutes",
     "minutes_to_point",

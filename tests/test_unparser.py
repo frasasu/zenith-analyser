@@ -101,8 +101,8 @@ end_target"""
     assert lines[1] == '    key:"value"'
     assert lines[2] == "    dictionnary:"
     assert lines[3] == '        d1:"desc"'
-    assert lines[4] == "        law example:"
-    assert lines[5] == "            start_date:2024-01-01 at 10:00"
+    assert lines[4] == "    law example:"
+    assert lines[5] == "        start_date:2024-01-01 at 10:00"
 
     # Check that end blocks are properly dedented
     assert "    end_law" in formatted

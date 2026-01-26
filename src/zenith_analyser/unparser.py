@@ -19,6 +19,7 @@ Reconstructs Zenith code from an Abstract Syntax Tree (AST).
 """
 
 from typing import Any, Dict
+from . import Lexer, Parser
 
 
 class ASTUnparser:
@@ -175,29 +176,15 @@ class ASTUnparser:
         Returns:
             Formatted Zenith code
         """
-        lines = code.split("\n")
-        formatted_lines = []
-        indent_level = 0
+        lexer = Lexer(code)
+        tokens = lexer.tokenise()
+        parser = Parser(tokens)
+        ast = parser.parse()[0]
 
-        for line in lines:
-            stripped = line.strip()
+        unparser = ASTUnparser(ast)
+        code = unparser.unparse()
 
-            if not stripped:
-                formatted_lines.append("")
-                continue
-
-            # Decrease indent for end blocks
-            if stripped in ["end_law", "end_target"]:
-                indent_level = max(0, indent_level - 1)
-
-            # Add line with proper indentation
-            formatted_lines.append("    " * indent_level + stripped)
-
-            # Increase indent for start blocks
-            if stripped.startswith(("law ", "target ", "dictionnary:", "Event:")):
-                indent_level += 1
-
-        return "\n".join(formatted_lines)
+        return code
 
     def validate_unparse(self) -> bool:
         """

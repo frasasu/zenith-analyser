@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Command Line Interface for Zenith Analyser.
-"""
-
 import argparse
 import json
 import sys
-from typing import Optional
+import os
+import csv
+import io
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 
-from . import ASTUnparser, Validator, ZenithAnalyser
+from . import ASTUnparser, Validator, ZenithAnalyser, ZenithMetrics
+from . import ZenithVisualizer, __version__, __author__, __license__
 from .exceptions import (
     ZenithAnalyserError,
     ZenithError,
@@ -31,7 +32,6 @@ from .exceptions import (
 
 
 def main() -> None:
-    """Main CLI entry point."""
     parser = create_parser()
     args = parser.parse_args()
 
@@ -46,6 +46,14 @@ def main() -> None:
             convert_command(args)
         elif args.command == "version":
             version_command()
+        elif args.command == "metrics":
+            metrics_command(args)
+        elif args.command == "visualize":
+            visualize_command(args)
+        elif args.command == "export":
+            export_command(args)
+        elif args.command == "compare":
+            compare_command(args)
         else:
             parser.print_help()
             sys.exit(1)
@@ -59,15 +67,14 @@ def main() -> None:
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """Create argument parser."""
     parser = argparse.ArgumentParser(
         description="Zenith Analyser - Analyze structured temporal laws",
-        epilog="See https://github.com/frasasu/zenith-analyser for more information.",
+        epilog="See https://github.com/frasasu/zenith-analyser for more.",
+        formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
-    # Analyze command
     analyze_parser = subparsers.add_parser("analyze", help="Analyze Zenith code")
     analyze_parser.add_argument("input", help="Input file or - for stdin")
     analyze_parser.add_argument("-o", "--output", help="Output file (default: stdout)")
@@ -80,28 +87,26 @@ def create_parser() -> argparse.ArgumentParser:
     analyze_parser.add_argument("--law", help="Analyze specific law")
     analyze_parser.add_argument("--target", help="Analyze specific target")
     analyze_parser.add_argument(
-        "--population", type=int, default=-1, help="Population level (-1 for max)"
+        "--population", type=int, default=-1,
+        help="Population level (-1 for max)"
     )
     analyze_parser.add_argument(
         "--pretty", action="store_true", help="Pretty print JSON output"
     )
 
-    # Validate command
     validate_parser = subparsers.add_parser("validate", help="Validate Zenith code")
     validate_parser.add_argument("input", help="Input file or - for stdin")
     validate_parser.add_argument(
         "--strict", action="store_true", help="Treat warnings as errors"
     )
 
-    # Unparse command
-    unparse_parser = subparsers.add_parser("unparse", help="Convert AST to Zenith code")
+    unparse_parser = subparsers.add_parser("unparse", help="Convert AST to Zenith")
     unparse_parser.add_argument("input", help="Input JSON file")
     unparse_parser.add_argument("-o", "--output", help="Output file (default: stdout)")
     unparse_parser.add_argument(
         "--format", action="store_true", help="Format output code"
     )
 
-    # Convert command
     convert_parser = subparsers.add_parser("convert", help="Convert between formats")
     convert_parser.add_argument("input", help="Input file")
     convert_parser.add_argument("output", help="Output file")
@@ -116,14 +121,135 @@ def create_parser() -> argparse.ArgumentParser:
         "--to", choices=["zenith", "json"], default="json", help="Output format"
     )
 
-    # Version command
     subparsers.add_parser("version", help="Show version information")
+
+    metrics_parser = subparsers.add_parser("metrics", help="Calculate metrics")
+    metrics_parser.add_argument("input", help="Input file or - for stdin")
+    metrics_parser.add_argument(
+        "--type",
+        choices=["all", "temporal", "complexity", "density",
+                 "rhythm", "entropy", "patterns"],
+        default="all",
+        help="Type of metrics to calculate"
+    )
+    metrics_parser.add_argument("-o", "--output", help="Output file (default: stdout)")
+    metrics_parser.add_argument(
+        "--format",
+        choices=["json", "yaml", "text", "csv"],
+        default="json",
+        help="Output format",
+    )
+    metrics_parser.add_argument("--law", help="Analyze specific law")
+    metrics_parser.add_argument("--target", help="Analyze specific target")
+    metrics_parser.add_argument(
+        "--population", type=int, default=-1,
+        help="Population level (-1 for max)"
+    )
+    metrics_parser.add_argument(
+        "--pretty", action="store_true", help="Pretty print JSON output"
+    )
+    metrics_parser.add_argument(
+        "--detailed", action="store_true", help="Show detailed metrics breakdown"
+    )
+
+    visualize_parser = subparsers.add_parser(
+        "visualize", help="Create visualizations"
+    )
+    visualize_parser.add_argument("input", help="Input file or - for stdin")
+    visualize_parser.add_argument(
+        "--type",
+        choices=["histogram", "pie", "scatter", "timeline", 
+                 "summary", "frequency", "all"],
+        default="histogram",
+        help="Type of visualization"
+    )
+    visualize_parser.add_argument("-o", "--output", help="Output file")
+    visualize_parser.add_argument(
+        "--format",
+        choices=["png", "jpg", "svg", "pdf"],
+        default="png",
+        help="Output format",
+    )
+    visualize_parser.add_argument("--law", help="Visualize specific law")
+    visualize_parser.add_argument("--target", help="Visualize specific target")
+    visualize_parser.add_argument(
+        "--population", type=int, default=-1,
+        help="Population level (-1 for max)"
+    )
+    visualize_parser.add_argument(
+        "--width", type=int, default=1200, help="Image width in pixels"
+    )
+    visualize_parser.add_argument(
+        "--height", type=int, default=800, help="Image height in pixels"
+    )
+    visualize_parser.add_argument(
+        "--title", help="Custom title for visualization"
+    )
+
+    export_parser = subparsers.add_parser(
+        "export", help="Export data and visualizations"
+    )
+    export_parser.add_argument("input", help="Input file or - for stdin")
+    export_parser.add_argument(
+        "-o", "--output-dir",
+        default="./zenith_export",
+        help="Output directory (default: ./zenith_export)"
+    )
+    export_parser.add_argument(
+        "--formats",
+        nargs="+",
+        choices=["png", "pdf", "json", "csv"],
+        default=["png", "json"],
+        help="Formats to export"
+    )
+    export_parser.add_argument("--law", help="Export specific law")
+    export_parser.add_argument("--target", help="Export specific target")
+    export_parser.add_argument(
+        "--population", type=int, default=-1,
+        help="Population level (-1 for max)"
+    )
+    export_parser.add_argument(
+        "--resolution", type=int, default=300, help="Image resolution in DPI"
+    )
+    export_parser.add_argument(
+        "--zip", action="store_true", help="Create ZIP archive of exported files"
+    )
+
+    compare_parser = subparsers.add_parser("compare", help="Compare multiple analyses")
+    compare_parser.add_argument(
+        "inputs",
+        nargs="+",
+        help="Input files to compare"
+    )
+    compare_parser.add_argument(
+        "-o", "--output",
+        help="Output file (default: stdout)"
+    )
+    compare_parser.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="text",
+        help="Output format",
+    )
+    compare_parser.add_argument(
+        "--labels",
+        nargs="+",
+        help="Labels for each input (must match number of inputs)"
+    )
+    compare_parser.add_argument(
+        "--compare-type",
+        choices=["laws", "targets", "populations", "all"],
+        default="all",
+        help="What to compare"
+    )
+    compare_parser.add_argument(
+        "--visualize", action="store_true", help="Generate comparison visualizations"
+    )
 
     return parser
 
 
 def analyze_command(args: argparse.Namespace) -> None:
-    """Handle analyze command."""
     code = read_input(args.input)
 
     try:
@@ -147,7 +273,6 @@ def analyze_command(args: argparse.Namespace) -> None:
 
 
 def validate_command(args: argparse.Namespace) -> None:
-    """Handle validate command."""
     code = read_input(args.input)
 
     validator = Validator()
@@ -171,7 +296,6 @@ def validate_command(args: argparse.Namespace) -> None:
 
 
 def unparse_command(args: argparse.Namespace) -> None:
-    """Handle unparse command."""
     try:
         with open(args.input, "r", encoding="utf-8") as f:
             ast = json.load(f)
@@ -189,7 +313,6 @@ def unparse_command(args: argparse.Namespace) -> None:
 
 
 def convert_command(args: argparse.Namespace) -> None:
-    """Handle convert command."""
     if args.from_format == "zenith" and args.to == "json":
         code = read_input(args.input)
         analyser = ZenithAnalyser(code)
@@ -231,9 +354,6 @@ def convert_command(args: argparse.Namespace) -> None:
 
 
 def version_command() -> None:
-    """Handle version command."""
-    from . import __author__, __license__, __version__
-
     print(f"Zenith Analyser v{__version__}")
     print(f"Author: {__author__}")
     print(f"License: {__license__}")
@@ -241,8 +361,319 @@ def version_command() -> None:
     print(f"Platform: {sys.platform}")
 
 
+def metrics_command(args: argparse.Namespace) -> None:
+    code = read_input(args.input)
+
+    try:
+        analyser = ZenithAnalyser(code)
+        metrics_calculator = ZenithMetrics(code)
+
+        if args.law:
+            data = analyser.law_description(args.law, args.population)
+            simulations = data["simulation"]
+            source_name = f"Law: {args.law}"
+        elif args.target:
+            data = analyser.target_description(args.target)
+            simulations = data["simulation"]
+            source_name = f"Target: {args.target}"
+        elif args.population != -1:
+            data = analyser.population_description(args.population)
+            simulations = data["simulation"]
+            source_name = f"Population: {args.population}"
+        else:
+            corpus = analyser.analyze_corpus()
+            simulations = []
+            for law in corpus.get("laws", []):
+                if "simulation" in law:
+                    simulations.extend(law["simulation"])
+            source_name = "Full Corpus"
+
+        if not simulations:
+            print("No simulations found to analyze", file=sys.stderr)
+            sys.exit(1)
+
+        if args.type == "all":
+            result = metrics_calculator.get_comprehensive_metrics(simulations)
+        elif args.type == "temporal":
+            result = metrics_calculator.calculate_temporal_statistics(simulations)
+        elif args.type == "complexity":
+            result = metrics_calculator.calculate_sequence_complexity(simulations)
+        elif args.type == "density":
+            result = metrics_calculator.calculate_temporal_density(simulations)
+        elif args.type == "rhythm":
+            result = metrics_calculator.calculate_rhythm_metrics(simulations)
+        elif args.type == "entropy":
+            result = metrics_calculator.calculate_entropy(simulations)
+        elif args.type == "patterns":
+            result = metrics_calculator.detect_patterns(simulations)
+
+        if isinstance(result, dict):
+            result["_metadata"] = {
+                "source": source_name,
+                "event_count": len(simulations),
+                "calculation_date": datetime.now().isoformat(),
+                "metrics_type": args.type
+            }
+
+        if args.format == "csv":
+            output = format_metrics_csv(result, args.detailed)
+        else:
+            output = format_output(result, args.format, args.pretty)
+
+        write_output(output, args.output)
+
+        print(f"✓ Calculated {args.type} metrics for {source_name}", file=sys.stderr)
+        print(f"  Events analyzed: {len(simulations)}", file=sys.stderr)
+
+    except Exception as e:
+        print(f"Metrics calculation error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def visualize_command(args: argparse.Namespace) -> None:
+    code = read_input(args.input)
+
+    try:
+        analyser = ZenithAnalyser(code)
+        metrics = ZenithMetrics(code)
+        visualizer = ZenithVisualizer(metrics)
+
+        if args.law:
+            data = analyser.law_description(args.law, args.population)
+            simulations = data["simulation"]
+            default_title = f"Visualization - Law: {args.law}"
+        elif args.target:
+            data = analyser.target_description(args.target)
+            simulations = data["simulation"]
+            default_title = f"Visualization - Target: {args.target}"
+        elif args.population != -1:
+            data = analyser.population_description(args.population)
+            simulations = data["simulation"]
+            default_title = f"Visualization - Population: {args.population}"
+        else:
+            corpus = analyser.analyze_corpus()
+            simulations = []
+            for law in corpus.get("laws", []):
+                if "simulation" in law:
+                    simulations.extend(law["simulation"])
+            default_title = "Visualization - Full Corpus"
+
+        if not simulations:
+            print("No simulations found to visualize", file=sys.stderr)
+            sys.exit(1)
+
+        title = args.title or default_title
+        
+        # Create output path
+        if args.output:
+            output_path = args.output
+            if not output_path.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.pdf')):
+                output_path = f"{output_path}.{args.format}"
+        else:
+            output_path = None
+
+        # Create the visualization based on type
+        if args.type == "histogram" or args.type == "all":
+            visualizer.plot_duration_histogram(
+                simulations,
+                title=f"{title} - Duration Histogram",
+                save_path=output_path if args.type == "histogram" else None
+            )
+        
+        if args.type == "pie" or args.type == "all":
+            visualizer.plot_event_pie_chart(
+                simulations,
+                title=f"{title} - Event Distribution",
+                save_path=output_path if args.type == "pie" else None
+            )
+        
+        if args.type == "scatter" or args.type == "all":
+            visualizer.plot_sequence_scatter(
+                simulations,
+                title=f"{title} - Event Sequence",
+                save_path=output_path if args.type == "scatter" else None
+            )
+        
+        if args.type == "timeline" or args.type == "all":
+            visualizer.plot_timeline(
+                simulations,
+                title=f"{title} - Timeline",
+                save_path=output_path if args.type == "timeline" else None
+            )
+        
+        if args.type == "summary" or args.type == "all":
+            metrics_data = metrics.get_comprehensive_metrics(simulations)
+            visualizer.plot_metrics_summary(
+                metrics_data,
+                title=f"{title} - Metrics Summary",
+                save_path=output_path if args.type == "summary" else None
+            )
+        
+        if args.type == "frequency" or args.type == "all":
+            visualizer.plot_event_frequency(
+                simulations,
+                title=f"{title} - Event Frequency",
+                save_path=output_path if args.type == "frequency" else None
+            )
+        
+        # If specific type was requested and output path was given
+        if args.type != "all" and output_path:
+            print(f"✓ Visualization saved to {output_path}", file=sys.stderr)
+        elif args.type == "all":
+            print(f"✓ Created all visualizations", file=sys.stderr)
+        else:
+            print("✓ Visualizations displayed", file=sys.stderr)
+
+    except Exception as e:
+        print(f"Visualization error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def export_command(args: argparse.Namespace) -> None:
+    code = read_input(args.input)
+
+    try:
+        analyser = ZenithAnalyser(code)
+        metrics = ZenithMetrics(code)
+        visualizer = ZenithVisualizer(metrics)
+
+        if args.law:
+            data = analyser.law_description(args.law, args.population)
+            simulations = data["simulation"]
+            export_prefix = f"law_{args.law}"
+        elif args.target:
+            data = analyser.target_description(args.target)
+            simulations = data["simulation"]
+            export_prefix = f"target_{args.target}"
+        elif args.population != -1:
+            data = analyser.population_description(args.population)
+            simulations = data["simulation"]
+            export_prefix = f"population_{args.population}"
+        else:
+            corpus = analyser.analyze_corpus()
+            simulations = []
+            for law in corpus.get("laws", []):
+                if "simulation" in law:
+                    simulations.extend(law["simulation"])
+            export_prefix = "corpus"
+
+        if not simulations:
+            print("No simulations found to export", file=sys.stderr)
+            sys.exit(1)
+
+        os.makedirs(args.output_dir, exist_ok=True)
+
+        print(f"Exporting to: {args.output_dir}", file=sys.stderr)
+
+        exported_files = []
+
+        # Export metrics as JSON
+        if "json" in args.formats:
+            metrics_data = metrics.get_comprehensive_metrics(simulations)
+            json_path = os.path.join(args.output_dir, f"{export_prefix}_metrics.json")
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(metrics_data, f, indent=2)
+            exported_files.append(json_path)
+            print(f"  ✓ Metrics exported to {json_path}", file=sys.stderr)
+
+        # Export metrics as CSV
+        if "csv" in args.formats:
+            metrics_data = metrics.get_comprehensive_metrics(simulations)
+            csv_path = os.path.join(args.output_dir, f"{export_prefix}_metrics.csv")
+            csv_content = format_metrics_csv(metrics_data, detailed=True)
+            with open(csv_path, 'w', encoding='utf-8', newline='') as f:
+                f.write(csv_content)
+            exported_files.append(csv_path)
+            print(f"  ✓ Metrics exported to {csv_path}", file=sys.stderr)
+
+        # Export visualizations
+        if any(fmt in args.formats for fmt in ["png", "pdf", "svg"]):
+            # Create all plots
+            saved_files = visualizer.create_all_plots(
+                simulations,
+                metrics_data=metrics.get_comprehensive_metrics(simulations) if "json" not in args.formats else None,
+                prefix=export_prefix,
+                output_dir=args.output_dir
+            )
+            exported_files.extend(saved_files)
+
+        # Create ZIP archive if requested
+        if args.zip and exported_files:
+            import zipfile
+            zip_path = os.path.join(args.output_dir, f"{export_prefix}_export.zip")
+            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                for file in exported_files:
+                    zipf.write(file, os.path.relpath(file, args.output_dir))
+            print(f"✓ ZIP archive created: {zip_path}", file=sys.stderr)
+
+        print(f"✓ Export completed", file=sys.stderr)
+        print(f"  Files exported: {len(exported_files)}", file=sys.stderr)
+
+    except Exception as e:
+        print(f"Export error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def compare_command(args: argparse.Namespace) -> None:
+    if args.labels and len(args.labels) != len(args.inputs):
+        print("Number of labels must match number of inputs", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        comparisons = []
+        labels = args.labels or [f"Input_{i+1}" for i in range(len(args.inputs))]
+
+        for i, input_file in enumerate(args.inputs):
+            code = read_input(input_file)
+            analyser = ZenithAnalyser(code)
+            metrics = ZenithMetrics(code)
+
+            simulations = []
+            if args.compare_type == "laws":
+                corpus = analyser.analyze_corpus()
+                if corpus.get("laws"):
+                    law_name = corpus["laws"][0]["name"]
+                    law_data = analyser.law_description(law_name, population=1)
+                    simulations = law_data["simulation"]
+            elif args.compare_type == "targets":
+                corpus = analyser.analyze_corpus()
+                if corpus.get("targets"):
+                    target_name = corpus["targets"][0]["name"]
+                    target_data = analyser.target_description(target_name)
+                    simulations = target_data["simulation"]
+            else:
+                corpus = analyser.analyze_corpus()
+                for law in corpus.get("laws", []):
+                    if "simulation" in law:
+                        simulations.extend(law["simulation"])
+
+            metrics_data = metrics.get_comprehensive_metrics(simulations)
+
+            comparisons.append({
+                "label": labels[i],
+                "file": input_file,
+                "event_count": len(simulations),
+                "metrics": metrics_data
+            })
+
+        if args.format == "json":
+            output = json.dumps({"comparisons": comparisons}, indent=2)
+        else:
+            output = generate_comparison_text(comparisons, args.compare_type)
+
+        write_output(output, args.output)
+
+        if args.visualize:
+            generate_comparison_visualizations(comparisons, args.compare_type)
+
+        print(f"✓ Compared {len(comparisons)} inputs", file=sys.stderr)
+
+    except Exception as e:
+        print(f"Comparison error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def read_input(input_spec: str) -> str:
-    """Read input from file or stdin."""
     if input_spec == "-":
         return sys.stdin.read()
     else:
@@ -255,7 +686,6 @@ def read_input(input_spec: str) -> str:
 
 
 def write_output(output: str, output_spec: Optional[str]) -> None:
-    """Write output to file or stdout."""
     if output_spec:
         try:
             with open(output_spec, "w", encoding="utf-8") as f:
@@ -268,14 +698,12 @@ def write_output(output: str, output_spec: Optional[str]) -> None:
 
 
 def format_output(result: dict, format_type: str, pretty: bool) -> str:
-    """Format output according to specified format."""
     if format_type == "json":
         indent = 2 if pretty else None
         return json.dumps(result, indent=indent, default=str)
     elif format_type == "yaml":
         try:
             import yaml
-
             return yaml.dump(result, default_flow_style=False)
         except ImportError:
             print(
@@ -283,12 +711,13 @@ def format_output(result: dict, format_type: str, pretty: bool) -> str:
                 file=sys.stderr,
             )
             sys.exit(1)
-    else:  # text format
+    elif format_type == "csv":
+        return format_metrics_csv(result, detailed=False)
+    else:
         return format_text_output(result)
 
 
 def format_text_output(result: dict) -> str:
-    """Format result as human-readable text."""
     lines = []
 
     if "name" in result:
@@ -322,6 +751,166 @@ def format_text_output(result: dict) -> str:
         )
 
     return "\n".join(lines)
+
+
+def format_metrics_csv(metrics: dict, detailed: bool = False) -> str:
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    if detailed:
+        writer.writerow(["Metric Category", "Metric Name", "Value", "Unit"])
+
+        if "temporal_statistics" in metrics:
+            temp = metrics["temporal_statistics"]
+            writer.writerow(["Temporal", "Average Duration",
+                           temp.get("avg_duration", 0), "minutes"])
+            writer.writerow(["Temporal", "Max Duration",
+                           temp.get("max_duration", 0), "minutes"])
+            writer.writerow(["Temporal", "Total Duration",
+                           temp.get("sum_duration", 0), "minutes"])
+            writer.writerow(["Temporal", "Average Interval",
+                           temp.get("avg_dispersion", 0), "minutes"])
+
+        if "sequence_complexity" in metrics:
+            comp = metrics["sequence_complexity"]
+            writer.writerow(["Complexity", "Complexity Score",
+                           comp.get("complexity_score", 0), "0-100"])
+            writer.writerow(["Complexity", "Unique Events Ratio",
+                           comp.get("unique_events_ratio", 0), "ratio"])
+
+        if "temporal_density" in metrics:
+            dens = metrics["temporal_density"]
+            writer.writerow(["Density", "Temporal Density",
+                           dens.get("temporal_density", 0), "ratio"])
+            writer.writerow(["Density", "Coverage Ratio",
+                           dens.get("coverage_ratio", 0), "percentage"])
+
+        if "entropy" in metrics:
+            writer.writerow(["Entropy", "Sequence Entropy",
+                           metrics["entropy"], "bits"])
+
+        if "patterns_detected" in metrics:
+            patterns = metrics["patterns_detected"]
+            writer.writerow(["Patterns", "Patterns Detected",
+                           len(patterns), "count"])
+    else:
+        writer.writerow(["Metric", "Value"])
+
+        if "temporal_statistics" in metrics:
+            temp = metrics["temporal_statistics"]
+            writer.writerow(["Average Duration (min)",
+                           temp.get("avg_duration", 0)])
+            writer.writerow(["Total Duration (min)",
+                           temp.get("sum_duration", 0)])
+            writer.writerow(["Event Count", temp.get("events_count", 0)])
+
+        if "sequence_complexity" in metrics:
+            comp = metrics["sequence_complexity"]
+            writer.writerow(["Complexity Score",
+                           comp.get("complexity_score", 0)])
+
+        if "entropy" in metrics:
+            writer.writerow(["Entropy", metrics["entropy"]])
+
+    return output.getvalue()
+
+
+def generate_comparison_text(comparisons: List[Dict], compare_type: str) -> str:
+    lines = []
+    lines.append("=" * 80)
+    lines.append("ZENITH COMPARISON REPORT")
+    lines.append("=" * 80)
+    lines.append(f"Comparison Type: {compare_type}")
+    lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append(f"Comparisons: {len(comparisons)}")
+    lines.append("")
+
+    header = ["Metric"] + [comp["label"] for comp in comparisons]
+    lines.append(" | ".join(header))
+    lines.append("-" * (sum(len(h) for h in header) + 3 * len(header)))
+
+    metrics_to_compare = [
+        ("Events", lambda c: c.get("event_count", 0)),
+        ("Avg Dur (min)", lambda c: c["metrics"].get("temporal_statistics", {})
+         .get("avg_duration", 0) if "temporal_statistics" in c["metrics"] else 0),
+        ("Complexity", lambda c: c["metrics"].get("sequence_complexity", {})
+         .get("complexity_score", 0) if "sequence_complexity" in c["metrics"] else 0),
+        ("Density", lambda c: c["metrics"].get("temporal_density", {})
+         .get("temporal_density", 0) if "temporal_density" in c["metrics"] else 0),
+        ("Entropy", lambda c: c["metrics"].get("entropy", 0))
+    ]
+
+    for metric_name, extractor in metrics_to_compare:
+        row = [metric_name]
+        for comp in comparisons:
+            value = extractor(comp)
+            if isinstance(value, float):
+                row.append(f"{value:.2f}")
+            else:
+                row.append(str(value))
+        lines.append(" | ".join(row))
+
+    lines.append("")
+    lines.append("=" * 80)
+
+    return "\n".join(lines)
+
+
+def generate_comparison_visualizations(comparisons: List[Dict],
+                                       compare_type: str) -> None:
+    try:
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        labels = [comp["label"] for comp in comparisons]
+
+        metrics_data = {
+            "Event Count": [comp.get("event_count", 0) for comp in comparisons],
+            "Avg Duration": [comp["metrics"].get("temporal_statistics", {})
+                           .get("avg_duration", 0)
+                           if "temporal_statistics" in comp["metrics"] else 0
+                           for comp in comparisons],
+            "Complexity Score": [comp["metrics"].get("sequence_complexity", {})
+                               .get("complexity_score", 0)
+                               if "sequence_complexity" in comp["metrics"] else 0
+                               for comp in comparisons]
+        }
+
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+        x = np.arange(len(labels))
+        width = 0.6
+
+        colors = ['#2E86AB', '#A23B72', '#F18F01']
+
+        for idx, (metric_name, values) in enumerate(metrics_data.items()):
+            ax = axes[idx]
+            bars = ax.bar(x, values, width,
+                         color=colors[idx % len(colors)], alpha=0.7)
+            ax.set_xlabel('Inputs')
+            ax.set_ylabel(metric_name)
+            ax.set_title(metric_name)
+            ax.set_xticks(x)
+            ax.set_xticklabels(labels, rotation=45)
+
+            for bar in bars:
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
+                       f'{height:.1f}', ha='center', va='bottom', fontsize=9)
+
+        plt.suptitle(f'Zenith Comparison - {compare_type}',
+                    fontsize=14, fontweight='bold')
+        plt.tight_layout()
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"zenith_comparison_{compare_type}_{timestamp}.png"
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        plt.close()
+
+        print(f"✓ Comparison visualization saved: {filename}", file=sys.stderr)
+
+    except ImportError:
+        print("Comparison visualizations require matplotlib", file=sys.stderr)
 
 
 if __name__ == "__main__":

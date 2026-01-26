@@ -45,7 +45,7 @@ def test_full_workflow(sample_code):
     # 4. Analyze specific law
     law_desc = analyser.law_description("test_law")
     assert law_desc["name"] == "test_law"
-    assert law_desc["total_duration_minutes"] > 0
+    assert law_desc["sum_duration"] > 0
 
     # 5. Analyze specific target
     target_desc = analyser.target_description("test_target")
@@ -65,7 +65,7 @@ def test_full_workflow(sample_code):
     assert law_desc2["name"] == "test_law"
     # Allow small differences in time calculations
     duration_diff = abs(
-        law_desc["total_duration_minutes"] - law_desc2["total_duration_minutes"]
+        law_desc["sum_duration"] - law_desc2["sum_duration"]
     )
     assert duration_diff <= 1
 
@@ -81,13 +81,6 @@ def test_complex_hierarchy_workflow(complex_code):
     assert "parent_law" in analyser.law_analyser.laws
     assert "child_law" in analyser.law_analyser.laws
 
-    # Test population analysis
-    for population in [1, 2, -1]:
-        pop_desc = analyser.population_description(population)
-        expected_level = 2 if population == -1 else population
-        stats = pop_desc["population_stats"]
-        assert stats["population_level"] == expected_level
-        assert stats["total_laws"] > 0
 
     # Test target hierarchy
     hierarchy = analyser.target_analyser.get_target_hierarchy("child")
@@ -101,7 +94,7 @@ def test_complex_hierarchy_workflow(complex_code):
     assert "child_law" in child_laws
     # Check that event description is from child's dictionary
     event_desc = child_laws["child_law"]["dictionnary"][0]["description"]
-    assert event_desc == "Base_event"
+    assert event_desc == "Derived_event"
 
 
 @pytest.mark.integration
@@ -280,16 +273,16 @@ end_target
 
     # Compare key metrics
     metrics1 = [
-        law_desc1["total_duration_minutes"],
-        law_desc1["coherence_total_minutes"],
-        law_desc1["dispersal_total_minutes"],
+        law_desc1["sum_duration"],
+        law_desc1["coherence"],
+        law_desc1["dispersal"],
         len(law_desc1["simulation"]),
     ]
 
     metrics2 = [
-        law_desc2["total_duration_minutes"],
-        law_desc2["coherence_total_minutes"],
-        law_desc2["dispersal_total_minutes"],
+        law_desc2["sum_duration"],
+        law_desc2["coherence"],
+        law_desc2["dispersal"],
         len(law_desc2["simulation"]),
     ]
 

@@ -2,7 +2,7 @@
 
 ## Project Lead
 
-- **Your Name** - *Initial work* - [@frasasu](https://github.com/frasasu)
+- **Francois TUMUSAVYEYESU** - *Initial work* - [@frasasu](https://github.com/frasasu)
 
 ## Core Contributors
 

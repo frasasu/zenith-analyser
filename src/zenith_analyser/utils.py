@@ -40,7 +40,7 @@ def point_to_minutes(point: str) -> int:
         ValueError: If any part is negative
 
     Examples:
-        >>> point_to_minutes("1.0")
+        >>>  point_to_minutes("1.0")
         60
         >>> point_to_minutes("0.1.30")
         90
@@ -77,7 +77,7 @@ def point_to_minutes(point: str) -> int:
         total_minutes += value * POINT_MULTIPLIERS[i]
 
     # Validate reasonable duration (max 1000 years)
-    max_minutes = 518400 * 100  # 1000 years
+    max_minutes = 518400 * 1000  # 1000 years
     if total_minutes > max_minutes:
         raise ZenithTimeError(
             f"Duration too large: {total_minutes} minutes "

@@ -17,7 +17,7 @@ If you believe you have found a security vulnerability in Zenith Analyser, pleas
 
 ### How to Report
 
-1. **Email**: Send an email to security@example.com
+1. **Email**: Send an email to frasasudev@gmail.com
 2. **Encryption**: Use our PGP key (available upon request)
 3. **Details**: Include as much information as possible:
    - Type of vulnerability
