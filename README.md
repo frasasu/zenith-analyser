@@ -352,8 +352,7 @@ To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we'
 **Enhanced Productivity**
 - **Automatic bracket/parenthesis/quotes completion**
 - **Code folding** for target and law blocks
-- **Custom file icons** for `.zenith`, `.znth`, `.zth` extensions
-- **Theme-aware icons** that adapt to light/dark themes
+
 
 #### 🚀 Installation
 
