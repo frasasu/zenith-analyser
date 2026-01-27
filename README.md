@@ -576,7 +576,7 @@ Advanced statistical analysis, pattern detection, and temporal characterization.
 
 #### Example:
 ```python
-from zenith.metrics import ZenithMetrics
+from zenith_analyser.metrics import ZenithMetrics
 
 metrics = ZenithMetrics(code_zenith)
 simulations = metrics.law_description("TemporalLaw", population=3)["simulation"]
