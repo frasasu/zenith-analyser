@@ -333,7 +333,7 @@ minutes = duration % 60              # 45
 
 ### Zenith Time - VS Code Extension
 
-To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we've developed a dedicated VS Code extension available on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=VotreNom.zenith-time).
+To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we've developed a dedicated VS Code extension available on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zenith-dev.zenith-time).
 
 #### ✨ Key Features
 
@@ -365,7 +365,7 @@ To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we'
 
 **Method 2: Command Line**
 ```bash
-code --install-extension YourPublisher.zenith-time
+code --install-extension zenith-dev.zenith-time
 ```
 
 #### 🎯 Usage Examples
