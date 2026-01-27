@@ -328,6 +328,72 @@ duration = point_to_minutes("1.45")  # 105 minutes
 hours = duration // 60               # 1
 minutes = duration % 60              # 45
 ```
+
+## 🛠️ Development Tools
+
+### Zenith Time - VS Code Extension
+
+To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we've developed a dedicated VS Code extension available on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=VotreNom.zenith-time).
+
+#### ✨ Key Features
+
+**Syntax Highlighting**
+- Full language support for Zenith Time syntax
+- Color-coded elements: targets, laws, events, dictionaries, dates, and operators
+- Clear visual distinction between different language constructs
+
+**Smart Code Snippets**
+- `target` - Complete target block structure with dictionary
+- `law` - Law block with event and group configurations
+- `event` - Quick event declaration
+- `dict` - Dictionary definition template
+- `mevents` - Multiple events with group configuration
+
+**Enhanced Productivity**
+- **Automatic bracket/parenthesis/quotes completion**
+- **Code folding** for target and law blocks
+- **Custom file icons** for `.zenith`, `.znth`, `.zth` extensions
+- **Theme-aware icons** that adapt to light/dark themes
+
+#### 🚀 Installation
+
+**Method 1: VS Code Marketplace**
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "Zenith Time"
+4. Click Install
+
+**Method 2: Command Line**
+```bash
+code --install-extension YourPublisher.zenith-time
+```
+
+#### 🎯 Usage Examples
+
+The extension automatically activates when you open `.zenith` files. Try these shortcuts:
+
+1. **Create a target block**: Type `target` and press Tab
+2. **Add a law**: Type `law` and press Tab
+3. **Quick events**: Type `event` or `mevents`
+
+#### 🛠️ Development Features
+
+- **Language Server Protocol ready** structure
+- **Scalable syntax definitions** for future language updates
+- **Cross-platform compatibility** (Windows, macOS, Linux)
+- **Regular updates** with new features and improvements
+
+#### 📁 File Support
+- `.zenith` - Primary Zenith Time files
+- `.znth` - Alternative extension
+- `.zth` - Short extension format
+
+The Zenith Time extension significantly improves development workflow by providing intelligent code completion, syntax validation, and visual enhancements specifically tailored for the Zenith Time language ecosystem.
+
+#### 🔗 Integration with Zenith Analyser
+The extension works seamlessly with `zenith-analyser` projects, ensuring consistent syntax highlighting and code structure validation across your development environment.
+
+*Note: The extension focuses on front-end syntax support; actual parsing and validation are handled by the zenith-analyser core.*
 ---
 
 ## CLI Usage
