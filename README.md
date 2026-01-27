@@ -20,14 +20,7 @@ A powerful Python library for analyzing structured temporal laws with events, ch
 - **Validation**: Comprehensive syntax and semantic validation
 - **Extensible**: Easy to extend with custom analyzers
 
-## Installation
 
-### From PyPI
-
-```bash
-pip install zenith-analyser
-
-```
 
 # Zenith-Analyser - Complete Documentation
 
