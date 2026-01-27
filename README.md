@@ -369,7 +369,7 @@ code --install-extension zenith-dev.zenith-time
 
 #### 🎯 Usage Examples
 
-The extension automatically activates when you open `.zenith` files. Try these shortcuts:
+The extension automatically activates when you open `.zenith`, `.zth` et  `.znth` files. Try these shortcuts:
 
 1. **Create a target block**: Type `target` and press Tab
 2. **Add a law**: Type `law` and press Tab
