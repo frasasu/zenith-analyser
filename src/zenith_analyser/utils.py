@@ -22,7 +22,7 @@ from typing import Any, Dict, List
 import math
 
 from .constants import DATE_FORMAT, DATETIME_FORMAT, POINT_MULTIPLIERS, TIME_FORMAT
-from .exceptions import ZenithTimeError
+from .exceptions import ZenithTimeError, ZenithError
 
 
 def point_to_minutes(point: str) -> int:
@@ -454,3 +454,27 @@ def validate_zenith_code(code: str) -> List[str]:
             errors.append(f"Missing colon after '{keyword}'")
 
     return errors
+
+def load_corpus(path:str) -> str:
+    """
+    Read corpus set from a provided path of the file
+
+    Args:
+        path:Provided path of the file which contains corpus set.
+
+    Returns:
+          code where contains zenith datas in zenith language.
+    """
+    parts = []
+    if isinstance(path, str):
+        parts = path.split(".")
+
+    if parts and parts[-1] not in ["zth","znth","zenith"]:
+        raise ZenithError(
+            "Error extension of file corpus "
+            "set...('.zth','.zenith','.znth')")
+
+    with open(path, "r", encoding="utf-8") as file:
+        code = file.read()
+
+    return code

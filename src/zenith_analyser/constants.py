@@ -67,7 +67,7 @@ TIME_UNITS = {
     "hours": 60,
     "days": 1440,
     "months": 43200,  # 30 days
-    "years": 525600,  # 365 days
+    "years": 518400,  # 360 days
 }
 
 POINT_MULTIPLIERS = [1, 60, 1440, 43200, 518400]
