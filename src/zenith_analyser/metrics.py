@@ -34,7 +34,7 @@ class ZenithMetrics(ZenithAnalyser):
         super().__init__(code)
         self.code = code
 
-    # --- MÉTHODES PRIVÉES D'OPTIMISATION (SUFFIX ARRAY / LCP) ---
+
 
     def _build_suffix_array(self, s: List[int]) -> List[int]:
         """Construction du Suffix Array en O(n log n) pour les séquences d'IDs."""
@@ -68,7 +68,7 @@ class ZenithMetrics(ZenithAnalyser):
                 if h > 0: h -= 1
         return lcp
 
-    # --- MÉTHODES DE DONNÉES ET STATISTIQUES ---
+
 
     def get_data_simulations(self, simulations: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
         datas = {
@@ -180,29 +180,27 @@ class ZenithMetrics(ZenithAnalyser):
             "intervals": intervals
         }
 
-    # --- LA NOUVELLE FONCTION DETECT_PATTERNS OPTIMISÉE ---
+
 
     def detect_patterns(self, simulations: List[Dict[str, Any]], min_pattern_length: int = 2) -> List[Dict[str, Any]]:
         """Détecte les patterns récurrents (répétitions maximales) en O(n log n)."""
         if len(simulations) < min_pattern_length * 2:
             return []
 
-        # Encodage numérique des événements
         events = [sim["event_name"] for sim in simulations]
         unique_names = sorted(list(set(events)))
         name_to_id = {name: i for i, name in enumerate(unique_names)}
         event_ids = [name_to_id[name] for name in events]
-        
-        # Sentinelle
+
         event_ids_sentinel = event_ids + [-1]
-        
+
         sa = self._build_suffix_array(event_ids_sentinel)
         lcp = self._build_lcp(event_ids_sentinel, sa)
-        
+
         results = []
         n_sa = len(sa)
         i = 1
-        
+
         while i < n_sa:
             if lcp[i] >= min_pattern_length:
                 current_lcp = lcp[i]
@@ -210,18 +208,18 @@ class ZenithMetrics(ZenithAnalyser):
                 while i < n_sa and lcp[i] >= current_lcp:
                     i += 1
                 end_idx = i - 1
-                
+
                 group_sa = sa[start_idx : end_idx + 1]
-                
-                # Test de maximalité à gauche
+
+
                 left_chars = set()
                 for pos in group_sa:
                     left_chars.add(event_ids_sentinel[pos - 1] if pos > 0 else -2)
-                
+
                 if len(left_chars) > 1:
                     pattern_ids = event_ids[group_sa[0] : group_sa[0] + current_lcp]
                     pattern_names = [unique_names[idx] for idx in pattern_ids]
-                    
+
                     results.append({
                         "pattern": pattern_names,
                         "occurrences": [(p, p + current_lcp) for p in sorted(group_sa)],
@@ -231,7 +229,7 @@ class ZenithMetrics(ZenithAnalyser):
                 i += 1
         return results
 
-    # --- CALCULS FINAUX ET EXPORTS ---
+
 
     def calculate_entropy(self, simulations: List[Dict[str, Any]]) -> float:
         events = [sim["event_name"] for sim in simulations]
