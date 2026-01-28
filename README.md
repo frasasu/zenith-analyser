@@ -276,7 +276,7 @@ print(corpus['corpus_statistics'])
 ### `point_to_minutes(point: str) → int`
 Converts Zenith point notation to total minutes.
 
-**Format:** `minutes.hours.days.months.years` (dot-separated)
+**Format:** `years.months.days.hours.minutes` (dot-separated)
 **Multipliers:** 1 minute = 1 min, 1 hour = 60 min, 1 day = 1440 min (24h), 1 month = 43200 min (30d), 1 year = 518400 min (360d)
 
 ```python
@@ -295,7 +295,7 @@ minutes_to_point(30)    # → "30"
 minutes_to_point(60)    # → "1.0"
 minutes_to_point(90)    # → "0.1.30"
 minutes_to_point(150)   # → "0.2.30" (2h30)
-minutes_to_point(1440)  # → "0.0.1" (1 day)
+minutes_to_point(1440)  # → "1.0.0" (1 day)
 ```
 
 ## Quick Reference
@@ -306,7 +306,7 @@ minutes_to_point(1440)  # → "0.0.1" (1 day)
 | 60 | `"1.0"` | 1 hour |
 | 90 | `"0.1.30"` | 1 hour 30 minutes |
 | 150 | `"0.2.30"` | 2 hours 30 minutes |
-| 1440 | `"0.0.1"` | 1 day |
+| 1440 | `"1.0.0"` | 1 day |
 | 43200 | `"30.0.0"` | 30 days |
 
 ## Common Usage
@@ -320,6 +320,93 @@ formatted = minutes_to_point(total)  # "0.3.45" (3h45)
 duration = point_to_minutes("1.45")  # 105 minutes
 hours = duration // 60               # 1
 minutes = duration % 60              # 45
+```
+
+# 📁 Zenith Corpus System
+
+## Definition
+
+A **Zenith Corpus** is a structured text file containing temporal data formatted in the Zenith language. These files store time management structures including targets (objectives), laws (temporal sessions), events, and their hierarchical relationships for analysis and planning.
+
+## File Specifications
+
+### Supported Extensions
+Zenith corpus files are identified by three extensions:
+- `.zenith` (primary, recommended format)
+- `.zth` (short form)
+- `.znth` (alternate form)
+
+### File Format
+Corpus files are **plain text** with UTF-8 encoding, containing:
+- Target definitions with objectives
+- Law definitions with time sessions
+- Event specifications
+- Chronocoherence/dispersal configurations
+
+### Example Structure
+```zenith
+target Project:
+    key: "project_management"
+    dictionnary:
+        planning: "Project planning phase"
+    
+    law WorkSession:
+        start_date: 2025-01-15 at 09:00
+        period: 2.0
+        Event:
+            task1[planning]: "Morning review"
+        GROUP:(task1 2.0^0)
+    end_law
+end_target
+```
+
+## Loading Corpus Files
+
+### `load_corpus(path: str) → str`
+Loads and validates a Zenith corpus file.
+
+```python
+from zenith_analyser.utils import load_corpus
+
+# Load corpus file
+code = load_corpus("my_project.zenith")  # or .zth, .znth
+
+# Use with analyser
+from zenith_analyser.analysers import ZenithAnalyser
+analyser = ZenithAnalyser(code)
+```
+
+**Requirements:**
+- File must exist at specified path
+- Must have valid extension (`.zenith`, `.zth`, or `.znth`)
+- Read as UTF-8 encoded text
+
+**Error Cases:**
+```python
+load_corpus("data.txt")      # ❌ Invalid extension
+load_corpus("missing.zth")   # ❌ File not found
+load_corpus("project.zenith") # ✅ Valid
+```
+
+## Usage Example
+
+```python
+# Complete workflow
+from zenith_analyser.utils import load_corpus
+from zenith_analyser.analysers import ZenithAnalyser
+from zenith_analyser.metrics import ZenithMetrics
+
+# 1. Load corpus
+zenith_code = load_corpus("weekly_schedule.zenith")
+
+# 2. Create analyser
+analyser = ZenithAnalyser(zenith_code)
+
+# 3. Generate metrics
+metrics = ZenithMetrics(analyser)
+results = metrics.get_comprehensive_metrics()
+
+print(f"Analysis complete: {results['event_count']} events")
 ```
 
 ## 🛠️ Development Tools
@@ -484,27 +571,26 @@ Zenith is a specialized language designed to structure and organize temporal tex
 ### 2. Basic Structure
 
 #### Law Example
-```zenith
+```python
 law LawName:
-    start_date: YYYY-MM-DD at HH:MM:SS
-    period: number
+    start_date: YYYY-MM-DD at HH:MM
+    period: number|dotted_number
     Event:
         event1: "description"
-        event2[index]: "description"
-    GROUP:
-        (event1 0.5^0.3 event2 0.7^0.4)
-end law
+        event2: "description"
+    GROUP:(event1 5.0^30 event2 1.20.15^0)
+end_law
 ```
 
 #### Target Example
-```zenith
+```python
 target TargetName:
     key: "main_key"
     dictionnary:
         entry1: "description"
         entry2[index]: "description"
-    # Nested blocks (laws or targets)
-end target
+    # Nested blocks (laws or targets) but comments aren't allowed!
+end_target
 ```
 
 ### 3. Syntax Components
@@ -534,23 +620,22 @@ corpus_textuel
 ```
 
 ### 4. Complete Example
-```zenith
+```python
 target HistoricalProject:
     key: "industrial_revolution"
     dictionnary:
         innovation: "period of technical innovations"
-        social[impact]: "major social changes"
+        social: "major social changes"
     
     law MainPeriod:
         start_date: 1760-01-01 at 00:00:00
-        period: 100
+        period: 1.45
         Event:
-            steam_engine: "invention of the steam engine"
-            textile: "textile mechanization"
-        GROUP:
-            (steam_engine 0.8^0.2-textile 0.7^0.3)
-    end law
-end target
+            steam_engine[innovation]: "invention of the steam engine"
+            textile[social]: "textile mechanization"
+        GROUP:(steam_engine 30^0- textile 1.15^0)
+    end_law
+end_target
 ```
 
 ---
@@ -591,7 +676,7 @@ Comprehensive visualization of temporal data.
 
 #### Example:
 ```python
-from zenith.visualizer import ZenithVisualizer
+from zenith_analyser.visuals import ZenithVisualizer
 
 visualizer = ZenithVisualizer(metrics)
 
