@@ -92,7 +92,7 @@ A law is a planned session designed to achieve one or more specific objectives o
 1. **start_date**: Date and time when the session begins
 2. **period**: Total planned duration for the session
 3. **Event**: List of actions or learnings, referenced via the target's dictionary
-4. **GROUP**: Notation (A subscript^superscript) where:
+4. **GROUP**: Notation (A subscript^superscript - B subscript^superscript - C subscript^superscript - D subscript^superscript ) where:
    - subscript represents chronocoherence duration (useful and directly contributive time)
    - superscript represents chronodispersal duration (used but not directly contributive time)
 
@@ -100,10 +100,12 @@ A law is a planned session designed to achieve one or more specific objectives o
 ```python
 law a2025_12_25_15_45:
     start_date:2025-12-25 at 15:45
-    period:30
+    period:4.45
     Event:
-        A[d1]: "Learning pandas."
-    GROUP:(A 30^0)
+        A: "Learning pandas."
+        B:"Sweeping room."
+        C:"Preparing of foods."
+    GROUP:(A 30^0 - B 1.15^0 - C 45^0 - A 15^0 - B 2.0^0)
 end_law
 ```
 
@@ -580,7 +582,7 @@ law LawName:
     Event:
         event1: "description"
         event2: "description"
-    GROUP:(event1 5.0^30 event2 1.20.15^0)
+    GROUP:(event1 5.0^30 - event2 1.20.15^0)
 end_law
 ```
 
@@ -635,7 +637,7 @@ target HistoricalProject:
         Event:
             steam_engine[innovation]: "invention of the steam engine"
             textile[social]: "textile mechanization"
-        GROUP:(steam_engine 30^0- textile 1.15^0)
+        GROUP:(steam_engine 30^0 - textile 1.15^0)
     end_law
 end_target
 ```
