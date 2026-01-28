@@ -80,6 +80,36 @@ target programming:
     dictionnary:
         d1[d1]: "Software development expertise."
         d2[d1]: "Android and IOS development expertise."
+    law Software:
+        start_date:1950-01-22 at 12:00
+        period:3.45
+        Event:
+             A[d1]:"Frontend developpement."
+             B[d1]:"Backend developpement."
+        GROUP:( A 2.15^0 - B 1.30^0)      
+    end_law
+    target Mobile:
+         key:"Android and IOS developpement expertise."
+         dictionnary:
+             d1[d2]:"Android developpement."
+             d2[d2]:"IOS developpement."
+        law android:
+            start_date:1950-01-24 at 12:00
+            period:6.0
+            Event:
+                 A[d1]:"Frontend developpement."
+                 B[d1]:"Backend developpement."
+            GROUP:(A 1.0^1.0 - A 2.0^15 - B 1.45^0)
+        end_law 
+        law ios:
+            start_date:1950-01-24 at 12:00
+            period:5.15
+            Event:
+                 A[d2]:"Frontend developpement."
+                 B[d2]:"Backend developpement."
+            GROUP:(A 1.0^15 - A 2.0^15 - B 1.45^0)
+        end_law
+     end_target   
 end_target
 ```
 
