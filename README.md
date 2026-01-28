@@ -74,12 +74,13 @@ A target is a general or specific objective within a time management project fra
 4. **Sub-targets**: A target can contain other targets for hierarchical structuring
 
 #### Example
-```zenith
+```python
 target programming:
     key: "programming"
     dictionnary:
         d1[d1]: "Software development expertise."
         d2[d1]: "Android and IOS development expertise."
+end_target
 ```
 
 ### 3. Law (Temporal Session)
@@ -96,13 +97,14 @@ A law is a planned session designed to achieve one or more specific objectives o
    - superscript represents chronodispersal duration (used but not directly contributive time)
 
 #### Example
-```zenith
+```python
 law a2025_12_25_15_45:
     start_date:2025-12-25 at 15:45
     period:30
     Event:
         A[d1]: "Learning pandas."
     GROUP:(A 30^0)
+end_law
 ```
 
 ### 4. Chronocoherence & Chronodispersal
@@ -344,7 +346,7 @@ Corpus files are **plain text** with UTF-8 encoding, containing:
 - Chronocoherence/dispersal configurations
 
 ### Example Structure
-```zenith
+```python
 target Project:
     key: "project_management"
     dictionnary:
