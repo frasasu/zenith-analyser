@@ -27,7 +27,10 @@ from collections import Counter
 
 class ZenithMetrics(ZenithAnalyser):
     """
-    Main Metrics class with optimized pattern detection using Suffix Array (O(n log n)).
+        Initialize ZenithMetrics with Zenith language code.
+
+        Args:
+            code (str): Zenith language code string
     """
 
     def __init__(self, code: str):
@@ -37,7 +40,15 @@ class ZenithMetrics(ZenithAnalyser):
 
 
     def _build_suffix_array(self, s: List[int]) -> List[int]:
-        """Construction du Suffix Array en O(n log n) pour les séquences d'IDs."""
+        """
+        Build Suffix Array in O(n log n) for sequence IDs.
+
+        Args:
+            s (List[int]): List of integer IDs representing events
+
+        Returns:
+            List[int]: Suffix array indices
+        """
         n = len(s)
         sa = list(range(n))
         rank = s[:]
@@ -54,7 +65,16 @@ class ZenithMetrics(ZenithAnalyser):
         return sa
 
     def _build_lcp(self, s: List[int], sa: List[int]) -> List[int]:
-        """Construction du LCP Array en O(n) via l'algorithme de Kasai."""
+        """
+        Build LCP Array in O(n) using Kasai's algorithm.
+
+        Args:
+            s (List[int]): Original sequence of IDs
+            sa (List[int]): Suffix array
+
+        Returns:
+            List[int]: LCP (Longest Common Prefix) array
+        """
         n = len(s)
         rank = [0] * n
         for i, pos in enumerate(sa): rank[pos] = i
@@ -71,6 +91,19 @@ class ZenithMetrics(ZenithAnalyser):
 
 
     def get_data_simulations(self, simulations: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
+        """
+        Extract structured data from simulation results.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, List[Any]]: Dictionary with keys:
+                - "sequence": Event sequence numbers
+                - "event": Event names
+                - "coherence": Event durations in minutes
+                - "dispersion": Waiting times before next events
+        """
         datas = {
             "sequence": [],
             "event": [],
@@ -96,6 +129,24 @@ class ZenithMetrics(ZenithAnalyser):
         return datas
 
     def calculate_temporal_statistics(self, simulations: List[Dict[str, Any]]) -> Dict[str, float]:
+        """
+        Calculate temporal statistics from simulations.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, float]: Dictionary containing:
+                - "avg_duration": Average event duration
+                - "median_duration": Median event duration
+                - "min_duration": Minimum event duration
+                - "max_duration": Maximum event duration
+                - "duration_std": Standard deviation of durations
+                - "sum_duration": Total duration of all events
+                - "avg_dispersion": Average waiting time between events
+                - "sum_dispersion": Total waiting time
+                - "events_count": Number of events
+        """
         durations = []
         dispersions = []
         for i, sim in enumerate(simulations):
@@ -122,10 +173,32 @@ class ZenithMetrics(ZenithAnalyser):
         }
 
     def calculate_event_frequency(self, simulations: List[Dict[str, Any]]) -> Dict[str, int]:
+        """
+        Calculate frequency of each event type.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, int]: Dictionary with event names as keys and counts as values
+        """
         events = [sim["event_name"] for sim in simulations]
         return dict(Counter(events))
 
     def calculate_sequence_complexity(self, simulations: List[Dict[str, Any]]) -> Dict[str, float]:
+        """
+        Calculate sequence complexity metrics.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, float]: Dictionary containing:
+                - "complexity_score": Overall complexity score (0-100)
+                - "unique_events_ratio": Ratio of unique events
+                - "transition_variety": Variety of event transitions
+                - "unique_transitions_count": Number of unique transitions
+        """
         total_events = len(simulations)
         if total_events < 2:
             return {"complexity_score": 0, "unique_events_ratio": 0, "transition_variety": 0}
@@ -151,6 +224,19 @@ class ZenithMetrics(ZenithAnalyser):
         }
 
     def calculate_temporal_density(self, simulations: List[Dict[str, Any]]) -> Dict[str, float]:
+        """
+        Calculate temporal density and coverage metrics.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, float]: Dictionary containing:
+                - "temporal_density": Ratio of event time to total time
+                - "coverage_ratio": Coverage percentage (density * 100)
+                - "total_simulation_time": Total time span
+                - "effective_event_time": Sum of all event durations
+        """
         if not simulations: return {"temporal_density": 0, "coverage_ratio": 0}
         first_start = parse_datetime(simulations[0]["start"]["date"], simulations[0]["start"]["time"])
         last_end = parse_datetime(simulations[-1]["end"]["date"], simulations[-1]["end"]["time"])
@@ -165,6 +251,19 @@ class ZenithMetrics(ZenithAnalyser):
         }
 
     def calculate_rhythm_metrics(self, simulations: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Calculate rhythm and interval consistency metrics.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, Any]: Dictionary containing:
+                - "rhythm_consistency": Rhythm consistency score (0-1)
+                - "avg_interval": Average interval between events
+                - "interval_std": Standard deviation of intervals
+                - "intervals": List of all interval values
+        """
         if len(simulations) < 2: return {"rhythm_consistency": 0, "intervals": []}
         intervals = []
         for i in range(len(simulations) - 1):
@@ -183,7 +282,19 @@ class ZenithMetrics(ZenithAnalyser):
 
 
     def detect_patterns(self, simulations: List[Dict[str, Any]], min_pattern_length: int = 2) -> List[Dict[str, Any]]:
-        """Détecte les patterns récurrents (répétitions maximales) en O(n log n)."""
+        """
+        Detect recurrent patterns (maximal repeats) in O(n log n).
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+            min_pattern_length (int): Minimum pattern length to detect (default: 2)
+
+        Returns:
+            List[Dict[str, Any]]: List of detected patterns, each containing:
+                - "pattern": List of event names in the pattern
+                - "occurrences": List of (start, end) position tuples
+                - "length": Length of the pattern
+        """
         if len(simulations) < min_pattern_length * 2:
             return []
 
@@ -232,6 +343,15 @@ class ZenithMetrics(ZenithAnalyser):
 
 
     def calculate_entropy(self, simulations: List[Dict[str, Any]]) -> float:
+        """
+        Calculate Shannon entropy of event distribution.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            float: Entropy value (bits)
+        """
         events = [sim["event_name"] for sim in simulations]
         if not events: return 0
         counter = Counter(events)
@@ -243,6 +363,22 @@ class ZenithMetrics(ZenithAnalyser):
         return entropy
 
     def get_comprehensive_metrics(self, simulations: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Get all available metrics in a structured dictionary.
+
+        Args:
+            simulations (List[Dict[str, Any]]): List of simulation dictionaries
+
+        Returns:
+            Dict[str, Any]: Comprehensive metrics dictionary containing:
+                - "temporal_statistics": Temporal statistics
+                - "event_frequency": Event frequency counts
+                - "sequence_complexity": Sequence complexity metrics
+                - "temporal_density": Temporal density metrics
+                - "rhythm_metrics": Rhythm and interval metrics
+                - "patterns_detected": Detected patterns
+                - "entropy": Shannon entropy
+        """
         return {
             "temporal_statistics": self.calculate_temporal_statistics(simulations),
             "event_frequency": self.calculate_event_frequency(simulations),
@@ -254,6 +390,19 @@ class ZenithMetrics(ZenithAnalyser):
         }
 
     def get_data_law(self, name: str, population: int = 1) -> Any:
+        """
+        Get simulation data for a specific law as a pandas DataFrame.
+
+        Args:
+            name (str): Name of the law
+            population (int): Population identifier (default: 1)
+
+        Returns:
+            Any: pandas DataFrame containing simulation data
+
+        Raises:
+            ImportError: If pandas is not installed
+        """
         simulations = self.law_description(name, population)["simulation"]
         try:
             import pandas as pd
@@ -263,10 +412,32 @@ class ZenithMetrics(ZenithAnalyser):
             raise ImportError("Installez pandas : pip install zenith-analyser[science]")
 
     def get_metrics_law(self, name: str, population: int = 1) -> Dict[str, Any]:
+        """
+        Get comprehensive metrics for a specific law.
+
+        Args:
+            name (str): Name of the law
+            population (int): Population identifier (default: 1)
+
+        Returns:
+            Dict[str, Any]: Comprehensive metrics dictionary
+        """
         simulations = self.law_description(name, population)["simulation"]
         return self.get_comprehensive_metrics(simulations)
 
     def get_data_target(self, name: str) -> Any:
+        """
+        Get simulation data for a specific target as a pandas DataFrame.
+
+        Args:
+            name (str): Name of the target
+
+        Returns:
+            Any: pandas DataFrame containing simulation data
+
+        Raises:
+            ImportError: If pandas is not installed
+        """
         simulations = self.target_description(name)["simulation"]
         try:
             import pandas as pd
@@ -276,10 +447,31 @@ class ZenithMetrics(ZenithAnalyser):
             raise ImportError("Installez pandas : pip install zenith-analyser[science]")
 
     def get_metrics_target(self, name: str) -> Dict[str, Any]:
+        """
+        Get comprehensive metrics for a specific target.
+
+        Args:
+            name (str): Name of the target
+
+        Returns:
+            Dict[str, Any]: Comprehensive metrics dictionary
+        """
         simulations = self.target_description(name)["simulation"]
         return self.get_comprehensive_metrics(simulations)
 
     def get_data_population(self, population: int = 0) -> Any:
+        """
+        Get simulation data for a specific population as a pandas DataFrame.
+
+        Args:
+            population (int): Population identifier (default: 0)
+
+        Returns:
+            Any: pandas DataFrame containing simulation data
+
+        Raises:
+            ImportError: If pandas is not installed
+        """
         simulations = self.population_description(population)["simulation"]
         try:
             import pandas as pd
@@ -289,5 +481,14 @@ class ZenithMetrics(ZenithAnalyser):
             raise ImportError("Installez pandas : pip install zenith-analyser[science]")
 
     def get_metrics_population(self, population: int = 0) -> Dict[str, Any]:
+        """
+        Get comprehensive metrics for a specific population.
+
+        Args:
+            population (int): Population identifier (default: 0)
+
+        Returns:
+            Dict[str, Any]: Comprehensive metrics dictionary
+        """
         simulations = self.population_description(population)["simulation"]
         return self.get_comprehensive_metrics(simulations)
