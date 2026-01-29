@@ -930,7 +930,7 @@ Exemple :
 entropy = metrics.calculate_entropy(simulations)
 print(f"Entropie de la séquence: {entropy:.2f} bits")
 ```
-#### Détection de Patterns - `detect_patterns() ⚡ (Optimisé)`
+#### Pattern Detection- `detect_patterns() ⚡ (Optimisé)`
 
 Detects recurring patterns in event sequences.
 
@@ -952,20 +952,20 @@ Retour :
     },
 ]
 ```
-Exemple d'utilisation :
+Usage Example :
 
 ```python
 patterns = metrics.detect_patterns(simulations, min_pattern_length=3)
 for pattern in patterns:
     print(f"Motif '{' -> '.join(pattern['pattern'])}' trouvé {len(pattern['occurrences'])} fois")
 ```
-#### Densité Temporelle - `calculate_temporal_density()`
+#### Temporal Density - `calculate_temporal_density()`
 
-Calcule la densité d'événements dans le temps.
+It calculates the density of events over time.
 
 Paramètres :
 
--	`simulations (List[Dict]) `: Liste des simulations
+-	`simulations (List[Dict]) `: List of Simulations
 
 Retour :
 ```python
@@ -979,18 +979,18 @@ Retour :
 Formule :
 `temporal_density = effective_event_time / total_simulation_time`
 
-#### Fréquences d'événements - `calculate_event_frequency()`
+#### Event Frequencies- `calculate_event_frequency()`
 
-Compte la fréquence de chaque type d'événement.
+It counts the frequency of each type of event.
 
-Paramètres :
+Arguments :
 
--	`simulations (List[Dict]) `: Liste des simulations
+-	`simulations (List[Dict]) `: List of Simulations
 Retour :
 ```python
- Dict[str, int] - Dictionnaire {nom_événement: fréquence}
+Dict[str, int] - Dictionary {event_name: frequency}
 ```
-Exemple :
+Example :
 ```python
 freq = metrics.calculate_event_frequency(simulations)
 for event, count in sorted(freq.items(), key=lambda x: x[1], reverse=True):
@@ -1041,97 +1041,97 @@ files = visualizer.create_all_plots(
 
 ### Example 1: Complete Historical Analysis
 ```bash
-# 1. Analyse complète du corpus (format JSON)
+# 1. Complete corpus analysis (JSON format)
 zenith analyze data/corpus.zenith --format json --pretty -o outputs/analyse_brute.json
 
-# 2. Analyse en format texte lisible a corriger !
+# 2. Analysis in readable text format
 zenith analyze data/corpus.zenith --population 1 --format text -o outputs/analyse_lisible.txt
 
-# 3. Analyse en YAML (si pyyaml installé)
+# 3. Analysis in YAML format (if pyyaml is installed)
 zenith analyze data/corpus.zenith --population 1 --format yaml -o outputs/analyse.yaml
 
-# 4. Analyse d'une loi spécifique
+# 4. Analysis of a specific law
 zenith analyze data/corpus.zenith --law "session_matin" --format json -o outputs/loi_session_matin.json
 
-# 5. Analyse d'une cible spécifique
+# 5. Analysis of a specific target
 zenith analyze data/corpus.zenith --target "projet_web" -o outputs/cible_projet_web.json
 
-# 6. Analyse par niveau de population
+# 6. Analysis by population level
 zenith analyze data/corpus.zenith --population 2 -o outputs/population_niveau2.json
 
-# 7. Analyse depuis stdin avec pipe
+# 7. Analysis from stdin via pipe
 cat data/corpus.zenith | zenith analyze - --format json | ConvertFrom-Json | Select-Object -ExpandProperty corpus_statistics | ConvertTo-Json
 
-# 8. Toutes les métriques du corpus
+# 8. All corpus metrics
 zenith metrics data/corpus.zenith --population 2 --type all --format json --pretty -o metrics/toutes_metriques.json
 
-# 9. Métriques temporelles en CSV
+# 9. Temporal metrics in CSV format
 zenith metrics data/corpus.zenith --population 2 --type temporal --format csv -o metrics/metriques_temporelles.csv
 
-# 10. Métriques de complexité
+# 10. Complexity metrics
 zenith metrics data/corpus.zenith --population 2 --type complexity --detailed -o metrics/complexite_detaillee.json
 
-# 11. Métriques de densité
+# 11. Density metrics
 zenith metrics data/corpus.zenith --population 2  --type density --format json -o metrics/densite.json
 
-# 12. Métriques de rythme
+# 12. Rhythm metrics
 zenith metrics data/corpus.zenith --population 2 --type rhythm -o metrics/rythme.json
 
-# 13. Métriques d'entropie 
+# 13. Entropy metrics
 zenith metrics data/corpus.zenith --population 2  --type entropy --format yaml -o metrics/entropie.yml
 
-# 14. Détection de motifs
+# 14. Pattern detection
 zenith metrics data/corpus.zenith --population 2  --type patterns --format json --pretty -o metrics/motifs.json
 
-# 15. Métriques pour une population spécifique
+# 15. Metrics for a specific population
 zenith metrics data/corpus.zenith  --population 3 --type all -o metrics/population3_metriques.json
 
-# 16. Métriques pour une loi spécifique
+# 16. Metrics for a specific law
 zenith metrics data/corpus.zenith --law "reunion_equipe" --type all -o metrics/loi_reunion.json
 
-# 17. Histogramme des durées
+# 17. Duration histogram
 zenith visualize data/corpus.zenith --target "developpement" --type histogram --width 1600 --height 900 -o visualizations/histogramme_durees.png --title "Distribution des Durées"
 
-# 18. Timeline des événements
+# 18. Event timeline
 zenith visualize data/corpus.zenith --type timeline --population 2 -o visualizations/timeline_population2.svg --format svg
 
-# 19. Diagramme circulaire des événements
+# 19. Event pie chart
 zenith visualize data/corpus.zenith --type pie --target "zenith" -o visualizations/repartition_sante.pdf --format pdf
 
-# 20. Nuage de points des séquences
+# 20. Sequence scatter plot
 zenith visualize data/corpus.zenith --type scatter --law "sprint_1"  -o visualizations/scatter_sprint1.jpg
 
-# 21. Résumé des métriques
+# 21. Metrics summary
 zenith visualize data/corpus.zenith --type summary --population 1 -o visualizations/resume_metriques.png
 
-# 22. Fréquence des événements
+# 22. Event frequency
 zenith visualize data/corpus.zenith --type frequency --law "sprint_1" -o visualizations/frequence_evenements.png
 
-# 23. Toutes les visualisations d'un coup
+# 23. All visualizations at once
 zenith visualize data/corpus.zenith --population 1 --type all  --width 1400 --height 800 --title "Analyse Complète du Corpus"
 
-# 24. Export complet (données + visuels)
+# 24. Complete export (data + visuals)
 zenith export data/corpus.zenith --population 1 --output-dir exports/complete --formats png json csv --resolution 300 --zip
 
-# 25. Export spécifique à une cible
+# 25. Target-specific export
 zenith export data/corpus.zenith --target "developpement" --output-dir exports/developpement --formats pdf json --zip
 
-# 26. Conversion Zenith → JSON
+# 26. Zenith → JSON conversion
 zenith convert data/corpus.zenith exports/corpus.json --from zenith --to json
 
-# 27. Conversion JSON → Zenith  verifier cette fonctionnalite!
+# 27. JSON → Zenith conversion
 zenith convert exports/ast.json exports/reconstructed.zenith --from json --to zenith
 
-# 28. Unparse depuis AST  verifier cette fonctionalite!
+# 28. Unparse from AST
 zenith unparse data/ast_template.json -o exports/code_regenere.zenith --format
 
-# 29. Comparaison de deux corpus
+# 29. Comparison of two corpora
 zenith compare data/corpusv1.zenith data/corpusv2.zenith --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
 
-# 30. Comparaison de populations
+# 30. Population comparison
 zenith compare data/corpus.zenith data/corpus_optimise.zenith --population 2 populations --format text --output comparisons/populations_diff.txt
 
-# 31. Pipeline d'analyse automatisée
+# 31. Automated analysis pipeline
 zenith validate data/corpus.zenith --strict 
 zenith analyze data/corpus.zenith --population 1 --pretty > analysis/full_analysis.json 
 zenith metrics data/corpus.zenith  --population 1 --type all > analysis/metrics.json 
