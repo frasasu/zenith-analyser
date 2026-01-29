@@ -718,7 +718,7 @@ def format_text_output(result: Any) -> str:
             f"Start: {result.get('start_datetime', {}).get('date', 'N/A')} "
             f"at {result.get('start_datetime', {}).get('time', 'N/A')}"
         )
-        lines.append(f"Duration: {result.get('total_duration_minutes', 0)} minutes")
+        lines.append(f"Duration: {result.get('sum_duration', 0)} minutes")
         lines.append(f"Events: {result.get('event_count', 0)}")
         lines.append("")
 
@@ -741,7 +741,7 @@ def format_text_output(result: Any) -> str:
         lines.append(f"  Total Targets: {stats.get('total_targets', 0)}")
         lines.append(f"  Total Events: {stats.get('total_events', 0)}")
         lines.append(
-            f"  Total Duration: {stats.get('total_duration_minutes', 0)} minutes"
+            f"  Total Duration: {stats.get('sum_duration', 0)} minutes"
         )
 
     return "\n".join(lines)

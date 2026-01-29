@@ -767,20 +767,20 @@ class ZenithAnalyser:
             if event_name not in event_metrics:
                 event_metrics[event_name] = {
                     "count": 0,
-                    "total_coherence": 0,
-                    "total_dispersal": 0,
+                    "coherence": 0,
+                    "dispersal": 0,
                 }
 
             metrics = event_metrics[event_name]
             metrics["count"] += 1
-            metrics["total_coherence"] += point_to_minutes(event["chronocoherence"])
+            metrics["coherence"] += point_to_minutes(event["chronocoherence"])
 
         for i, event in enumerate(group):
             if i < len(group) - 1:
                 event_name = event["name"]
                 if event_name in event_metrics:
                     dispersal = point_to_minutes(event["chronodispersal"])
-                    event_metrics[event_name]["total_dispersal"] += dispersal
+                    event_metrics[event_name]["dispersal"] += dispersal
 
         formatted_metrics = []
         for event_name, metrics in event_metrics.items():
@@ -789,13 +789,13 @@ class ZenithAnalyser:
                 {
                     "name": event_name,
                     "count": count,
-                    "total_coherence_minutes": int(metrics["total_coherence"]),
-                    "total_dispersal_minutes": int(metrics["total_dispersal"]),
-                    "mean_coherence_minutes": int(
-                        metrics["total_coherence"] / count if count > 0 else 0
+                    "coherence": int(metrics["coherence"]),
+                    "dispersal": int(metrics["dispersal"]),
+                    "mean_coherence": int(
+                        metrics["coherence"] / count if count > 0 else 0
                     ),
-                    "mean_dispersal_minutes": int(
-                        metrics["total_dispersal"] / count if count > 0 else 0
+                    "mean_dispersal": int(
+                        metrics["dispersal"] / count if count > 0 else 0
                     ),
                 }
             )
@@ -823,7 +823,7 @@ class ZenithAnalyser:
                     dispersions.append(dispersion_time)
 
                 dispersion_metrics[event_name] = {
-                    "mean_dispersion_minutes": int(
+                    "mean_dispersion": int(
                         sum(dispersions) / len(dispersions) if dispersions else 0
                     ),
                     "dispersion_count": len(dispersions),
@@ -832,7 +832,7 @@ class ZenithAnalyser:
         formatted_dispersion = [
             {
                 "name": event_name,
-                "mean_dispersion_minutes": int(metrics["mean_dispersion_minutes"]),
+                "mean_dispersion": int(metrics["mean_dispersion"]),
                 "dispersion_count": metrics["dispersion_count"],
             }
             for event_name, metrics in dispersion_metrics.items()
@@ -846,7 +846,7 @@ class ZenithAnalyser:
             "start_time": law_data["time"],
             "start_datetime": format_datetime(start_dt),
             "period": period,
-            "period_minutes": period_minutes,
+            "period_minutes":total_duration,
             "end_datetime": format_datetime(end_dt),
             "sum_duration": total_duration,
             "coherence": total_coherence,
@@ -990,13 +990,13 @@ class ZenithAnalyser:
         for law_data in all_laws.values():
             if isinstance(law_data, dict) and "error" not in law_data:
                 total_events += law_data.get("event_count", 0)
-                total_duration += law_data.get("total_duration_minutes", 0)
+                total_duration += law_data.get("sum_duration", 0)
 
         corpus_stats = {
             "total_laws": len(all_laws),
             "total_targets": len(all_targets),
             "total_events": total_events,
-            "total_duration_minutes": total_duration,
+            "sum_duration": total_duration,
             "max_nesting": ast_summary.get("max_nesting", 0),
             "analysis_timestamp": datetime.now().isoformat(),
         }
