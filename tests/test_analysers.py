@@ -308,7 +308,7 @@ def test_law_description(sample_code):
     assert len(metrics) == 2
     assert metrics[0]["name"] == "First_event"
     assert "count" in metrics[0]
-    assert "total_coherence_minutes" in metrics[0]
+    assert "coherence" in metrics[0]
 
 
 def test_law_description_nonexistent(sample_code):
