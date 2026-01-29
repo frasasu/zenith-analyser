@@ -86,7 +86,7 @@ target programming:
         Event:
              A[d1]:"Frontend developpement."
              B[d1]:"Backend developpement."
-        GROUP:( A 2.15^0 - B 1.30^0)      
+        GROUP:( A 2.15^0 - B 1.30^0)
     end_law
     target Mobile:
          key:"Android and IOS developpement expertise."
@@ -100,16 +100,16 @@ target programming:
                  A[d1]:"Frontend developpement."
                  B[d1]:"Backend developpement."
             GROUP:(A 1.0^1.0 - A 2.0^15 - B 1.45^0)
-        end_law 
+        end_law
         law ios:
-            start_date:1950-01-24 at 12:00
+            start_date:1950-01-25 at 12:00
             period:5.15
             Event:
                  A[d2]:"Frontend developpement."
                  B[d2]:"Backend developpement."
             GROUP:(A 1.0^15 - A 2.0^15 - B 1.45^0)
         end_law
-     end_target   
+     end_target
 end_target
 ```
 
@@ -156,8 +156,8 @@ Manipulates temporal laws - planning structures that define events, their durati
 #### Methods
 
 ##### `get_law_names()`
-**Parameters**: None  
-**Returns**: `List[str]` - names of all defined laws  
+**Parameters**: None
+**Returns**: `List[str]` - names of all defined laws
 **Interpretation**: Provides a list of all available temporal programs. Useful for visualizing planning options before deciding which one to use.
 
 ```python
@@ -167,8 +167,8 @@ print(names)
 ```
 
 ##### `get_law(name)`
-**Parameters**: `name (str)` - law name  
-**Returns**: `dict` - complete law structure  
+**Parameters**: `name (str)` - law name
+**Returns**: `dict` - complete law structure
 **Interpretation**: Allows reading the time exploitation plan in detail before simulation.
 
 ```python
@@ -189,8 +189,8 @@ for event_name, event_data in law['dictionnary'].items():
 ```
 
 ##### `validate_law(name)`
-**Parameters**: `name (str)` - law name  
-**Returns**: `List[str]` - detected errors (empty if valid)  
+**Parameters**: `name (str)` - law name
+**Returns**: `List[str]` - detected errors (empty if valid)
 **Interpretation**: Verifies that the law is temporally coherent.
 
 ```python
@@ -210,8 +210,8 @@ Manages objectives (targets), their hierarchy (generations), and their active co
 #### Methods
 
 ##### `get_targets_by_generation(generation)`
-**Parameters**: `generation (int)` - hierarchical level of objectives  
-**Returns**: `List[dict]` - objectives of this generation  
+**Parameters**: `generation (int)` - hierarchical level of objectives
+**Returns**: `List[dict]` - objectives of this generation
 **Interpretation**: Isolates objectives at the same level to understand where time is concentrated.
 
 ```python
@@ -221,8 +221,8 @@ for t in targets_gen1:
 ```
 
 ##### `extract_laws_for_target(target_name)`
-**Parameters**: `target_name (str)` - objective name  
-**Returns**: `dict` - laws directly and indirectly linked to the objective  
+**Parameters**: `target_name (str)` - objective name
+**Returns**: `dict` - laws directly and indirectly linked to the objective
 **Interpretation**: Shows the temporal field mobilized to achieve an objective.
 
 ```python
@@ -232,8 +232,8 @@ for law_name, law_data in laws.items():
 ```
 
 ##### `extract_laws_population(population)`
-**Parameters**: `population (int)` - cumulative depth of generations  
-**Returns**: `dict` - set of active laws up to this population  
+**Parameters**: `population (int)` - cumulative depth of generations
+**Returns**: `dict` - set of active laws up to this population
 **Interpretation**: Simulates the lived temporal reality where multiple objectives interact.
 
 ```python
@@ -273,8 +273,8 @@ for event in desc['simulation']:
 ```
 
 ##### `target_description(target_name)`
-**Parameters**: `target_name (str)` - objective name  
-**Returns**: `dict` - complete temporal synthesis of the objective  
+**Parameters**: `target_name (str)` - objective name
+**Returns**: `dict` - complete temporal synthesis of the objective
 **Interpretation**: Shows the time actually invested per objective.
 
 ```python
@@ -283,8 +283,8 @@ print(target_desc['events'])
 ```
 
 ##### `population_description(population=-1)`
-**Parameters**: `population (int)` - population to analyze (-1 = maximum)  
-**Returns**: `dict` - complete population simulation  
+**Parameters**: `population (int)` - population to analyze (-1 = maximum)
+**Returns**: `dict` - complete population simulation
 **Interpretation**: Represents cumulative temporal load.
 
 ```python
@@ -293,8 +293,8 @@ print(pop['sum_duration'])
 ```
 
 ##### `analyze_corpus()`
-**Parameters**: None  
-**Returns**: `dict` - global corpus diagnostic  
+**Parameters**: None
+**Returns**: `dict` - global corpus diagnostic
 **Interpretation**: Provides a complete time management dashboard.
 
 ```python
@@ -303,11 +303,11 @@ print(corpus['corpus_statistics'])
 # Main keys returned:
 # - corpus_statistics, ast_summary, laws, targets, validation
 ```
-# ⏱️ Zenith Point System
+## ⏱️ Zenith Point System
 
-## Time Conversion Functions
+### Time Conversion Functions
 
-### `point_to_minutes(point: str) → int`
+#### `point_to_minutes(point: str) → int`
 Converts Zenith point notation to total minutes.
 
 **Format:** `years.months.days.hours.minutes` (dot-separated)
@@ -321,7 +321,7 @@ point_to_minutes("30.0.0")  # → 43200 minutes (30 days)
 point_to_minutes("-1.30")   # → -90 minutes
 ```
 
-### `minutes_to_point(total_minutes: int | float) → str`
+#### `minutes_to_point(total_minutes: int | float) → str`
 Converts total minutes back to Zenith point notation.
 
 ```python
@@ -332,7 +332,7 @@ minutes_to_point(150)   # → "0.2.30" (2h30)
 minutes_to_point(1440)  # → "1.0.0" (1 day)
 ```
 
-## Quick Reference
+### Quick Reference
 
 | Minutes | Point Format | Meaning |
 |---------|--------------|---------|
@@ -343,7 +343,7 @@ minutes_to_point(1440)  # → "1.0.0" (1 day)
 | 1440 | `"1.0.0"` | 1 day |
 | 43200 | `"30.0.0"` | 30 days |
 
-## Common Usage
+### Common Usage
 
 ```python
 # Calculate total duration
@@ -356,34 +356,34 @@ hours = duration // 60               # 1
 minutes = duration % 60              # 45
 ```
 
-# 📁 Zenith Corpus System
+## 📁 Zenith Corpus System
 
-## Definition
+### Definition
 
 A **Zenith Corpus** is a structured text file containing temporal data formatted in the Zenith language. These files store time management structures including targets (objectives), laws (temporal sessions), events, and their hierarchical relationships for analysis and planning.
 
-## File Specifications
+### File Specifications
 
-### Supported Extensions
+#### Supported Extensions
 Zenith corpus files are identified by three extensions:
 - `.zenith` (primary, recommended format)
 - `.zth` (short form)
 - `.znth` (alternate form)
 
-### File Format
+#### File Format
 Corpus files are **plain text** with UTF-8 encoding, containing:
 - Target definitions with objectives
 - Law definitions with time sessions
 - Event specifications
 - Chronocoherence/dispersal configurations
 
-### Example Structure
+#### Example Structure
 ```python
 target Project:
     key: "project_management"
     dictionnary:
         planning: "Project planning phase"
-    
+
     law WorkSession:
         start_date: 2025-01-15 at 09:00
         period: 2.0
@@ -394,9 +394,9 @@ target Project:
 end_target
 ```
 
-## Loading Corpus Files
+### Loading Corpus Files
 
-### `load_corpus(path: str) → str`
+#### `load_corpus(path: str) → str`
 Loads and validates a Zenith corpus file.
 
 ```python
@@ -422,7 +422,7 @@ load_corpus("missing.zth")   # ❌ File not found
 load_corpus("project.zenith") # ✅ Valid
 ```
 
-## Usage Example
+### Usage Example
 
 ```python
 # Complete workflow
@@ -443,13 +443,13 @@ results = metrics.get_comprehensive_metrics()
 print(f"Analysis complete: {results['event_count']} events")
 ```
 
-## 🛠️ Development Tools
+### 🛠️ Development Tools
 
-### Zenith Time - VS Code Extension
+#### Zenith Time - VS Code Extension
 
 To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we've developed a dedicated VS Code extension available on the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=zenith-dev.zenith-time).
 
-#### ✨ Key Features
+##### ✨ Key Features
 
 **Syntax Highlighting**
 - Full language support for Zenith Time syntax
@@ -468,7 +468,7 @@ To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we'
 - **Code folding** for target and law blocks
 
 
-#### 🚀 Installation
+##### 🚀 Installation
 
 **Method 1: VS Code Marketplace**
 1. Open VS Code
@@ -481,7 +481,7 @@ To streamline the creation and editing of `.zenith` ,`.zth` et `.znth`files, we'
 code --install-extension zenith-dev.zenith-time
 ```
 
-#### 🎯 Usage Examples
+##### 🎯 Usage Examples
 
 The extension automatically activates when you open `.zenith`, `.zth` et  `.znth` files. Try these shortcuts:
 
@@ -496,7 +496,7 @@ The extension automatically activates when you open `.zenith`, `.zth` et  `.znth
 - **Cross-platform compatibility** (Windows, macOS, Linux)
 - **Regular updates** with new features and improvements
 
-#### 📁 File Support
+##### 📁 File Support
 - `.zenith` - Primary Zenith Time files
 - `.znth` - Alternative extension
 - `.zth` - Short extension format
@@ -505,13 +505,11 @@ The Zenith Time extension significantly improves development workflow by providi
 
 #### 🔗 Integration with Zenith Analyser
 The extension works seamlessly with `zenith-analyser` projects, ensuring consistent syntax highlighting and code structure validation across your development environment.
-
-*Note: The extension focuses on front-end syntax support; actual parsing and validation are handled by the zenith-analyser core.*
 ---
 
-## CLI Usage
+### CLI Usage
 
-### Installation
+#### Installation
 ```bash
 # Installation via pip
 pip install zenith-analyser
@@ -522,10 +520,25 @@ cd zenith-analyser
 pip install -e .
 ```
 
-### Available Commands
+#### Available Commands
 
-#### `zenith analyze` - Main Analysis
+##### `zenith analyze` - Main Analysis
 Analyzes a Zenith corpus and produces a structured report.
+
+Syntaxe :
+
+       zenith analyze <input> [options]
+
+Options :
+
+-	`-o, --output `: Fichier de sortie (stdout par défaut)
+-	`--format `: Format de sortie (json, yaml, text) - défaut: json
+-	`--law `: Analyser une loi spécifique
+-	`--target `: Analyser une cible spécifique
+-	`--population` : Niveau de population (-1 pour maximum)
+-	`--pretty` : Pretty-print pour JSON
+
+
 
 ```bash
 # Basic analysis
@@ -538,8 +551,17 @@ zenith analyze corpus.zenith --law "TemporalLaw" --format text
 cat corpus.zenith | zenith analyze -
 ```
 
-#### `zenith validate` - Syntax Validation
+##### `zenith validate` - Syntax Validation
 Validates Zenith file syntax.
+
+Syntaxe :
+
+        zenith validate <input> [options]
+
+Options :
+
+-	`--strict `: Traiter les warnings comme des erreurs
+
 
 ```bash
 # Basic validation
@@ -548,9 +570,66 @@ zenith validate corpus.zenith
 # Strict validation
 zenith validate corpus.zenith --strict
 ```
+#### `zenith unparse `- Reconstruction de code
+Convertit un AST JSON en code Zenith.
 
-#### `zenith metrics` - Advanced Metrics
+Syntaxe :
+
+        zenith unparse <input> [options]
+
+Options :
+
+-	`-o, --output `: Fichier de sortie
+-	`--format` : Formater le code de sortie
+
+Exemples :
+```bash
+# Reconstruire depuis un AST
+zenith unparse ast.json -o reconstructed.zenith
+
+# Avec formatage
+zenith unparse ast.json --format
+zenith convert - Conversion de format
+```
+Convertit entre différents formats.
+
+Syntaxe :
+
+        zenith convert <input> <output> [options]
+
+Options :
+
+-	`--from` : Format d'entrée (zenith, json) - défaut: zenith
+-	`--to `: Format de sortie (zenith, json) - défaut: json
+
+Exemples :
+```bash
+# Zenith vers JSON
+zenith convert corpus.zenith corpus.json --from zenith --to json
+
+# JSON vers Zenith
+zenith convert ast.json reconstructed.zenith --from json --to zenith
+```
+
+
+##### `zenith metrics` - Advanced Metrics
 Calculates advanced temporal metrics.
+
+Syntaxe :
+
+        zenith metrics <input> [options]
+
+Options :
+
+-	`--type` : Type de métriques (all, temporal, complexity, density, rhythm, entropy, patterns) - défaut: all
+-	`-o, --output` : Fichier de sortie
+-	`--format` : Format de sortie (json, yaml, text, csv) - défaut: json
+-	`--law` : Analyser une loi spécifique
+-	`--target` : Analyser une cible spécifique
+-	`--population` : Niveau de population
+-	`--pretty `: Pretty-print pour JSON
+
+
 
 ```bash
 # All metrics
@@ -563,8 +642,24 @@ zenith metrics corpus.zenith --type temporal --format csv -o metrics.csv
 zenith metrics corpus.zenith --law "MainSequence" --detailed
 ```
 
-#### `zenith visualize` - Visualization
+##### `zenith visualize` - Visualization
 Creates visualizations of temporal data.
+
+Syntaxe :
+
+       zenith visualize <input> [options]
+
+Options :
+
+-	`--type `: Type de visualisation (histogram, pie, scatter, timeline, summary, frequency, all) - défaut: histogram
+-	`-o, --output `: Fichier de sortie
+-	`--format `: Format d'image (png, jpg, svg, pdf) - défaut: png
+-	`--law `: Visualiser une loi spécifique
+-	`--target` : Visualiser une cible spécifique
+-	`--population` : Niveau de population
+-	`--width `: Largeur de l'image en pixels - défaut: 1200
+-	`--height `: Hauteur de l'image en pixels - défaut: 800
+-	`--title` : Titre personnalisé
 
 ```bash
 # Duration histogram
@@ -576,8 +671,68 @@ zenith visualize corpus.zenith --type all --output-dir ./visualizations
 # Specific timeline
 zenith visualize corpus.zenith --law "KeyEvents" --type timeline --title "Chronology"
 ```
+#### `zenith export` - Export complet
 
-#### Complete Analysis Pipeline
+Exporte données et visualisations dans un dossier structuré.
+
+Syntaxe :
+
+         zenith export <input> [options]
+
+Options :
+
+-	`-o, --output-dir `: Répertoire de sortie - défaut: ./zenith_export
+-	`--formats` : Formats à exporter (png, pdf, json, csv) - défaut: png, json
+-	`--law` : Exporter une loi spécifique
+-	`--target` : Exporter une cible spécifique
+-	`--population` : Niveau de population
+-	`--resolution` : Résolution des images en DPI - défaut: 300
+-	`--zip` : Créer une archive ZIP
+
+Exemples :
+```bash
+
+# Export complet
+zenith export corpus.zenith --formats png json csv
+
+# Export spécifique avec ZIP
+zenith export corpus.zenith --target "ProjetPrincipal" --formats pdf json --zip
+
+# Export haute résolution
+zenith export corpus.zenith --resolution 600
+```
+
+#### `zenith compare` - Comparaison multiple
+
+Compare plusieurs analyses Zenith.
+
+Syntaxe :
+
+         zenith compare <input1> <input2> ... [options]
+
+Options :
+
+-	`-o, --output` : Fichier de sortie
+-	`--format` : Format de sortie (json, text) - défaut: text
+-	`--labels` : Labels pour chaque entrée
+-	`--compare-type` : Type de comparaison (laws, targets, populations, all) - défaut: all
+-	`--visualize` : Générer des visualisations de comparaison
+
+Exemples :
+```bash
+# Comparaison basique
+zenith compare corpus1.zenith corpus2.zenith corpus3.zenith
+
+# Avec labels personnalisés
+zenith compare file1.zenith file2.zenith --labels "VersionA" "VersionB"
+
+# Comparaison avec visualisation
+zenith compare *.zenith --visualize --format json
+```
+
+
+
+##### Complete Analysis Pipeline
 ```bash
 # Step 1: Validation
 zenith validate my_corpus.zenith --strict
@@ -660,7 +815,7 @@ target HistoricalProject:
     dictionnary:
         innovation: "period of technical innovations"
         social: "major social changes"
-    
+
     law MainPeriod:
         start_date: 1760-01-01 at 00:00:00
         period: 1.45
@@ -777,11 +932,11 @@ def detect_anomalies(metrics, simulations, threshold=2.0):
     """Detect temporal anomalies in event sequences."""
     stats = metrics.calculate_temporal_statistics(simulations)
     anomalies = []
-    
+
     for sim in simulations:
         duration = sim["duration_minutes"]
         z_score = abs(duration - stats["avg_duration"]) / stats["duration_std"]
-        
+
         if z_score > threshold:
             anomalies.append({
                 "event": sim["event_name"],
@@ -789,7 +944,7 @@ def detect_anomalies(metrics, simulations, threshold=2.0):
                 "z_score": z_score,
                 "position": simulations.index(sim)
             })
-    
+
     return anomalies
 ```
 
@@ -845,4 +1000,4 @@ Zenith-Analyser provides a comprehensive framework for temporal management and a
 - **Research Analysis**: Model historical or sequential processes
 - **Process Optimization**: Identify temporal patterns and inefficiencies
 
-For more information, examples, and contributions, visit the [GitHub repository](https://github.com/yourusername/zenith-analyser).
+For more information, examples, and contributions, visit the [GitHub repository](https://github.com/frasasu/zenith-analyser).

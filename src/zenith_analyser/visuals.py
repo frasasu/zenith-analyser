@@ -359,7 +359,7 @@ class ZenithVisualizer:
         self.plot_metrics_summary(metrics_data, save_path=summary_path)
         saved_files.append(summary_path)
 
-        if len(simulations) <= 20:  
+        if len(simulations) <= 20:
             timeline_path = os.path.join(output_dir, f"{prefix}_timeline.png")
             self.plot_timeline(simulations, save_path=timeline_path)
             saved_files.append(timeline_path)
