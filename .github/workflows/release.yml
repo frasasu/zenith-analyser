@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'  # Déclenchement sur tags type v1.0.0
+      - 'v*.*.*'  # Déclenchement sur tags type v1.0.0
 
 jobs:
   test-release:
