@@ -151,7 +151,7 @@ end_law
 ### 1. LawAnalyser
 
 #### Role
-Manipulates temporal laws - planning structures that define events, their durations (chronocoherence/chronodispersal), and their relationships (order, simultaneity, exclusive/inclusive choices).
+Manipulates temporal laws - planning structures that define events, their durations (chronocoherence/chronodispersal), and their relationships (order, simultaneity, exclusive/inclusive choices) in this version we hold one relationship which is order (`-`).
 
 #### Methods
 
@@ -356,11 +356,11 @@ hours = duration // 60               # 1
 minutes = duration % 60              # 45
 ```
 
-## 📁 Zenith Corpus System
+## 📁 Zenith Corpora System
 
 ### Definition
 
-A **Zenith Corpus** is a structured text file containing temporal data formatted in the Zenith language. These files store time management structures including targets (objectives), laws (temporal sessions), events, and their hierarchical relationships for analysis and planning.
+A **Zenith Corpora** is a structured text file containing temporal data formatted in the Zenith language. These files store time management structures including targets (objectives), laws (temporal sessions), events, and their hierarchical relationships for analysis and planning.
 
 ### File Specifications
 
@@ -371,7 +371,7 @@ Zenith corpus files are identified by three extensions:
 - `.znth` (alternate form)
 
 #### File Format
-Corpus files are **plain text** with UTF-8 encoding, containing:
+Corpora files are **plain text** with UTF-8 encoding, containing:
 - Target definitions with objectives
 - Law definitions with time sessions
 - Event specifications
@@ -397,7 +397,7 @@ end_target
 ### Loading Corpus Files
 
 #### `load_corpus(path: str) → str`
-Loads and validates a Zenith corpus file.
+Loads and validates a Zenith corpora file.
 
 ```python
 from zenith_analyser.utils import load_corpus
@@ -516,7 +516,7 @@ The extension works seamlessly with `zenith-analyser` projects, ensuring consist
 pip install zenith-analyser
 
 # Or from source
-git clone <repository>
+git clone  https://github.com/frasasu/zenith-analyser
 cd zenith-analyser
 pip install -e .
 ```
@@ -574,7 +574,7 @@ zenith validate corpus.zenith --strict
 #### `zenith unparse `-  Code Reconstruction  
 
 Converts a JSON AST to Zenith code.
-Syntaxe :
+Syntax :
 
         zenith unparse <input> [options]
 
@@ -603,7 +603,7 @@ Options :
 -	`--from` : Input format (zenith, json) - default: zenith
 -	`--to `:Output format (zenith, json) - default: json
 
-Exemples :
+Examples :
 ```bash
 # Zenith vers JSON
 zenith convert corpus.zenith corpus.json --from zenith --to json
@@ -1129,7 +1129,7 @@ zenith unparse data/ast_template.json -o exports/code_regenere.zenith --format
 zenith compare data/corpusv1.zenith data/corpusv2.zenith --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
 
 # 30. Population comparison
-zenith compare data/corpus.zenith data/corpus_optimise.zenith --population 2 populations --format text --output comparisons/populations_diff.txt
+zenith compare data/corpus.zenith data/corpus_optimise.zenith --population 2  --format text --output comparisons/populations_diff.txt
 
 # 31. Automated analysis pipeline
 zenith validate data/corpus.zenith --strict 
