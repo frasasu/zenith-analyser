@@ -741,10 +741,10 @@ zenith validate my_corpus.zenith --strict
 zenith analyze my_corpus.zenith --pretty -o analysis.json
 
 # Step 3: Metrics
-zenith metrics my_corpus.zenith --type all --detailed -o metrics.json
+zenith metrics my_corpus.zenith --population 1 --type all  -o metrics.json
 
 # Step 4: Visualizations
-zenith visualize my_corpus.zenith --type all --output-dir ./viz
+zenith visualize my_corpus.zenith --population 1  --type all --output-dir ./viz
 
 # Step 5: Complete export
 zenith export my_corpus.zenith --formats png pdf json --zip
@@ -896,10 +896,10 @@ echo "🔍 Analyzing historical corpus..."
 zenith analyze "$INPUT" --pretty > "$OUTPUT_DIR/analysis.json"
 
 echo "📊 Calculating metrics..."
-zenith metrics "$INPUT" --type all --detailed > "$OUTPUT_DIR/metrics.json"
+zenith metrics "$INPUT" --population 1 --type all  "$OUTPUT_DIR/metrics.json"
 
 echo "🎨 Generating visualizations..."
-zenith visualize "$INPUT" --type all --output-dir "$OUTPUT_DIR/viz"
+zenith visualize "$INPUT" --population 1  --type all --output-dir "$OUTPUT_DIR/viz"
 
 echo "📦 Final export..."
 zenith export "$INPUT" --output-dir "$OUTPUT_DIR/export" --zip
@@ -926,26 +926,108 @@ print(f"Total events: {data['corpus_statistics']['total_events']}")
 print(f"Total duration: {data['corpus_statistics']['total_duration_minutes']} minutes")
 ```
 
-### Example 3: Anomaly Detection
+### Example 3: Example analysis with metrics
 ```python
-def detect_anomalies(metrics, simulations, threshold=2.0):
-    """Detect temporal anomalies in event sequences."""
-    stats = metrics.calculate_temporal_statistics(simulations)
-    anomalies = []
+import json
+from zenith_analyser.metrics import ZenithMetrics
+from zenith_analyser.utils import load_corpus
 
-    for sim in simulations:
-        duration = sim["duration_minutes"]
-        z_score = abs(duration - stats["avg_duration"]) / stats["duration_std"]
+corpus = load_corpus("Corpus_Zenith.zth")
+metrics = ZenithMetrics(corpus)
 
-        if z_score > threshold:
-            anomalies.append({
-                "event": sim["event_name"],
-                "duration": duration,
-                "z_score": z_score,
-                "position": simulations.index(sim)
-            })
+simulations = metrics.target_description("maitrise_soi")["simulation"]
+statistics = metrics.calculate_temporal_statistics(simulations)
+print(json.dumps(statistics, indent=4))
 
-    return anomalies
+# event frequency
+frequencies = metrics.calculate_event_frequency(simulations)
+print(json.dumps(frequencies, indent=4))
+
+# sequence complexity
+sequences = metrics.calculate_sequence_complexity(simulations)
+print(json.dumps(sequences, indent=4))
+
+#temporal density
+
+temporal = metrics.calculate_temporal_density(simulations)
+print(json.dumps(temporal, indent=4))
+
+# rhythms
+rhythms = metrics.calculate_rhythm_metrics(simulations)
+print(json.dumps(rhythms, indent=4))
+
+# patterns
+patterns = metrics.detect_patterns(simulations)
+print(json.dumps(patterns, indent=4))
+
+# entropy
+entropy = metrics.calculate_entropy(simulations)
+print(json.dumps(entropy, indent=4))
+
+# all metrics for target
+metrics_target = metrics.get_metrics_target("maitrise_soi")
+print(json.dumps(metrics_target, indent=4))
+
+# all metrics for population
+metrics_population = metrics.get_metrics_population(3)
+print(json.dumps(metrics_population, indent=4))
+
+#  all metrics for law
+metrics_law = metrics.get_metrics_law("a2026_01_04_05_15",5)
+print(json.dumps(metrics_law, indent=4))
+
+# get data with pandas
+data_target = metrics.get_data_population(3)
+print(data_target)
+```
+
+### Example 4: Example analysis with visualisations
+
+```python
+from zenith_analyser.metrics import ZenithMetrics
+from zenith_analyser.visuals import ZenithVisualizer,create_simple_plot
+from zenith_analyser.utils import load_corpus
+
+corpus = load_corpus("Corpus_Zenith.zth")
+metrics = ZenithMetrics(corpus)
+visual = ZenithVisualizer(metrics)
+
+#plot duration histogram
+simulations = metrics.target_description("vie_equilibre")["simulation"]
+visual.plot_duration_histogram(simulations=simulations,title="Duration histogram") # you can save path
+
+# plot  event_pie chart
+visual.plot_event_pie_chart(simulations=simulations, title="Event pie chart.")
+
+# plot sequence sactter
+visual.plot_sequence_scatter(simulations=simulations)
+
+# plot timeline
+simu = metrics.target_description("developpement")["simulation"]
+visual.plot_timeline(simulations=simu)
+
+
+#plot metrics summary
+metrics_ = metrics.get_metrics_target("vie_equilibre")
+visual.plot_metrics_summary(metrics_)
+
+#plot event frequency
+visual.plot_event_frequency(simulations=simulations)
+
+#create all plots
+visual.create_all_plots(simulations=simulations, metrics_data=metrics_)
+
+#comparison
+simulations_1 = metrics.target_description("maitrise_soi")['simulation']
+simulations_2 = metrics.target_description("developpement")['simulation']
+
+visual.plot_simple_comparison(simulations_list=[simulations_1,simulations_2], labels=["maitrise_soi","developpement"])
+
+#simple plot
+data = metrics.get_data_target("vie_equilibre")
+create_simple_plot(data=data["coherence"],plot_type="line")
+create_simple_plot(data=data["coherence"],plot_type="bar")
+create_simple_plot(data=data["coherence"],plot_type="scatter")
 ```
 
 ---
@@ -963,23 +1045,6 @@ git clone https://github.com/yourusername/zenith-analyser.git
 cd zenith-analyser
 pip install -e ".[dev]"
 ```
-
-### Optional Dependencies
-```bash
-# For scientific features (pandas, numpy)
-pip install zenith-analyser[science]
-
-# For development
-pip install zenith-analyser[dev]
-
-# For all features
-pip install zenith-analyser[all]
-```
-
-### Dependencies
-- **Required**: Python 3.8+
-- **Core**: matplotlib, numpy
-- **Optional**: pandas (for advanced metrics)
 
 ---
 
