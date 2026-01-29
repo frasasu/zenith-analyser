@@ -438,7 +438,8 @@ analyser = ZenithAnalyser(zenith_code)
 
 # 3. Generate metrics
 metrics = ZenithMetrics(analyser)
-results = metrics.get_comprehensive_metrics()
+simulations = metrics.population_description(1)["simulation"]
+results = metrics.get_comprehensive_metrics(simulations)
 
 print(f"Analysis complete: {results['event_count']} events")
 ```
@@ -663,10 +664,10 @@ Options :
 
 ```bash
 # Duration histogram
-zenith visualize corpus.zenith --type histogram -o histogram.png
+zenith visualize corpus.zenith --population 3 --type histogram -o histogram.png
 
 # All visualizations
-zenith visualize corpus.zenith --type all --output-dir ./visualizations
+zenith visualize corpus.zenith --population 3 --type all --output-dir ./visualizations
 
 # Specific timeline
 zenith visualize corpus.zenith --law "KeyEvents" --type timeline --title "Chronology"
@@ -884,27 +885,116 @@ files = visualizer.create_all_plots(
 
 ### Example 1: Complete Historical Analysis
 ```bash
-#!/bin/bash
-# historical_analysis.sh
+# 8. Analyse complète du corpus (format JSON)
+zenith analyze data/corpus.zenith --format json --pretty -o outputs/analyse_brute.json
 
-INPUT="europe_history.zenith"
-OUTPUT_DIR="./historical_analysis_$(date +%Y%m%d)"
+# 9. Analyse en format texte lisible
+zenith analyze data/corpus.zenith --format text -o outputs/analyse_lisible.txt
 
-mkdir -p "$OUTPUT_DIR"
+# 10. Analyse en YAML (si pyyaml installé)
+zenith analyze data/corpus.zenith --format yaml -o outputs/analyse.yaml
 
-echo "🔍 Analyzing historical corpus..."
-zenith analyze "$INPUT" --pretty > "$OUTPUT_DIR/analysis.json"
+# 11. Analyse d'une loi spécifique
+zenith analyze data/corpus.zenith --law "session_matin" --format json -o outputs/loi_session_matin.json
 
-echo "📊 Calculating metrics..."
-zenith metrics "$INPUT" --population 1 --type all  "$OUTPUT_DIR/metrics.json"
+# 12. Analyse d'une cible spécifique
+zenith analyze data/corpus.zenith --target "projet_web" -o outputs/cible_projet_web.json
 
-echo "🎨 Generating visualizations..."
-zenith visualize "$INPUT" --population 1  --type all --output-dir "$OUTPUT_DIR/viz"
+# 13. Analyse par niveau de population
+zenith analyze data/corpus.zenith --population 2 -o outputs/population_niveau2.json
 
-echo "📦 Final export..."
-zenith export "$INPUT" --output-dir "$OUTPUT_DIR/export" --zip
+# 14. Analyse depuis stdin avec pipe
+cat data/corpus.zenith | zenith analyze - --format json | jq '.corpus_statistics'
 
-echo "✅ Analysis completed in: $OUTPUT_DIR"
+# 15. Toutes les métriques du corpus
+zenith metrics data/corpus.zenith --type all --format json --pretty -o metrics/toutes_metriques.json
+
+# 16. Métriques temporelles en CSV
+zenith metrics data/corpus.zenith --type temporal --format csv -o metrics/metriques_temporelles.csv
+
+# 17. Métriques de complexité
+zenith metrics data/corpus.zenith --type complexity --detailed -o metrics/complexite_detaillee.json
+
+# 18. Métriques de densité
+zenith metrics data/corpus.zenith --type density --format json -o metrics/densite.json
+
+# 19. Métriques de rythme
+zenith metrics data/corpus.zenith --type rhythm -o metrics/rythme.json
+
+# 20. Métriques d'entropie
+zenith metrics data/corpus.zenith --type entropy --format text -o metrics/entropie.txt
+
+# 21. Détection de motifs
+zenith metrics data/corpus.zenith --type patterns --format json --pretty -o metrics/motifs.json
+
+# 22. Métriques pour une population spécifique
+zenith metrics data/corpus.zenith --population 3 --type all -o metrics/population3_metriques.json
+
+# 23. Métriques pour une loi spécifique
+zenith metrics data/corpus.zenith --law "reunion_equipe" --type all -o metrics/loi_reunion.json
+
+# 24. Histogramme des durées
+zenith visualize data/corpus.zenith --type histogram --width 1600 --height 900 \
+    -o visualizations/histogramme_durees.png --title "Distribution des Durées"
+
+# 25. Timeline des événements
+zenith visualize data/corpus.zenith --type timeline --population 2 \
+    -o visualizations/timeline_population2.svg --format svg
+
+# 26. Diagramme circulaire des événements
+zenith visualize data/corpus.zenith --type pie --target "sante" \
+    -o visualizations/repartition_sante.pdf --format pdf
+
+# 27. Nuage de points des séquences
+zenith visualize data/corpus.zenith --type scatter --law "sprint_1" \
+    -o visualizations/scatter_sprint1.jpg
+
+# 28. Résumé des métriques
+zenith visualize data/corpus.zenith --type summary --population 1 \
+    -o visualizations/resume_metriques.png
+
+# 29. Fréquence des événements
+zenith visualize data/corpus.zenith --type frequency \
+    -o visualizations/frequence_evenements.png
+
+# 30. Toutes les visualisations d'un coup
+zenith visualize data/corpus.zenith --type all --output-dir visualizations/complet \
+    --width 1400 --height 800 --title "Analyse Complète du Corpus"
+
+# 31. Export complet (données + visuels)
+zenith export data/corpus.zenith --output-dir exports/complete \
+    --formats png json csv --resolution 300 --zip
+
+# 32. Export spécifique à une cible
+zenith export data/corpus.zenith --target "developpement" \
+    --output-dir exports/developpement --formats pdf json --zip
+
+# 33. Conversion Zenith → JSON
+zenith convert data/corpus.zenith exports/corpus.json --from zenith --to json
+
+# 34. Conversion JSON → Zenith
+zenith convert exports/corpus.json exports/reconstructed.zenith --from json --to zenith
+
+# 35. Unparse depuis AST
+zenith unparse data/ast_template.json -o exports/code_regenere.zenith --format
+
+# 36. Comparaison de deux corpus
+zenith compare data/corpus_v1.zenith data/corpus_v2.zenith \
+    --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
+
+# 37. Comparaison avec visualisation
+zenith compare data/*.zenith --compare-type laws --visualize \
+    -o comparisons/comparaison_lois.txt
+
+# 38. Comparaison de populations
+zenith compare data/corpus.zenith data/corpus_optimise.zenith \
+    --compare-type populations --format text --output comparisons/populations_diff.txt
+
+# 39. Pipeline d'analyse automatisée
+zenith validate data/corpus.zenith --strict && \
+zenith analyze data/corpus.zenith --pretty > analysis/full_analysis.json && \
+zenith metrics data/corpus.zenith --type all > analysis/metrics.json && \
+zenith export data/corpus.zenith --output-dir analysis/export --zip
 ```
 
 ### Example 2: Python Integration
