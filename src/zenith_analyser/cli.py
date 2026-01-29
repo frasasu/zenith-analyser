@@ -237,10 +237,8 @@ def create_parser() -> argparse.ArgumentParser:
         help="Labels for each input (must match number of inputs)"
     )
     compare_parser.add_argument(
-        "--compare-type",
-        choices=["laws", "targets", "populations", "all"],
-        default="all",
-        help="What to compare"
+        "--population", type=int, default=-1,
+        help="Population level (-1 for max)"
     )
     compare_parser.add_argument(
         "--visualize", action="store_true", help="Generate comparison visualizations"
@@ -463,7 +461,7 @@ def visualize_command(args: argparse.Namespace) -> None:
             sys.exit(1)
 
         title = args.title or default_title
-        
+
         # Create output path
         if args.output:
             output_path = args.output
@@ -479,28 +477,28 @@ def visualize_command(args: argparse.Namespace) -> None:
                 title=f"{title} - Duration Histogram",
                 save_path=output_path if args.type == "histogram" else None
             )
-        
+
         if args.type == "pie" or args.type == "all":
             visualizer.plot_event_pie_chart(
                 simulations,
                 title=f"{title} - Event Distribution",
                 save_path=output_path if args.type == "pie" else None
             )
-        
+
         if args.type == "scatter" or args.type == "all":
             visualizer.plot_sequence_scatter(
                 simulations,
                 title=f"{title} - Event Sequence",
                 save_path=output_path if args.type == "scatter" else None
             )
-        
+
         if args.type == "timeline" or args.type == "all":
             visualizer.plot_timeline(
                 simulations,
                 title=f"{title} - Timeline",
                 save_path=output_path if args.type == "timeline" else None
             )
-        
+
         if args.type == "summary" or args.type == "all":
             metrics_data = metrics.get_comprehensive_metrics(simulations)
             visualizer.plot_metrics_summary(
@@ -508,14 +506,14 @@ def visualize_command(args: argparse.Namespace) -> None:
                 title=f"{title} - Metrics Summary",
                 save_path=output_path if args.type == "summary" else None
             )
-        
+
         if args.type == "frequency" or args.type == "all":
             visualizer.plot_event_frequency(
                 simulations,
                 title=f"{title} - Event Frequency",
                 save_path=output_path if args.type == "frequency" else None
             )
-        
+
         # If specific type was requested and output path was given
         if args.type != "all" and output_path:
             print(f"✓ Visualization saved to {output_path}", file=sys.stderr)
@@ -629,23 +627,13 @@ def compare_command(args: argparse.Namespace) -> None:
             metrics = ZenithMetrics(code)
 
             simulations = []
-            if args.compare_type == "laws":
-                corpus = analyser.analyze_corpus()
-                if corpus.get("laws"):
-                    law_name = corpus["laws"][0]["name"]
-                    law_data = analyser.law_description(law_name, population=1)
-                    simulations = law_data["simulation"]
-            elif args.compare_type == "targets":
-                corpus = analyser.analyze_corpus()
-                if corpus.get("targets"):
-                    target_name = corpus["targets"][0]["name"]
-                    target_data = analyser.target_description(target_name)
-                    simulations = target_data["simulation"]
+            if args.population != -1:
+               data = analyser.population_description(args.population)
+               simulations = data["simulation"]
             else:
-                corpus = analyser.analyze_corpus()
-                for law in corpus.get("laws", []):
-                    if "simulation" in law:
-                        simulations.extend(law["simulation"])
+                data = analyser.population_description(args.population)
+                simulations = data["simulation"]
+
 
             metrics_data = metrics.get_comprehensive_metrics(simulations)
 
@@ -659,12 +647,12 @@ def compare_command(args: argparse.Namespace) -> None:
         if args.format == "json":
             output = json.dumps({"comparisons": comparisons}, indent=2)
         else:
-            output = generate_comparison_text(comparisons, args.compare_type)
+            output = generate_comparison_text(comparisons,args.population)
 
         write_output(output, args.output)
 
         if args.visualize:
-            generate_comparison_visualizations(comparisons, args.compare_type)
+            generate_comparison_visualizations(comparisons, args.population)
 
         print(f"✓ Compared {len(comparisons)} inputs", file=sys.stderr)
 
@@ -697,7 +685,7 @@ def write_output(output: str, output_spec: Optional[str]) -> None:
         sys.stdout.write(output)
 
 
-def format_output(result: dict, format_type: str, pretty: bool) -> str:
+def format_output(result: Any, format_type: str, pretty: bool) -> str:
     if format_type == "json":
         indent = 2 if pretty else None
         return json.dumps(result, indent=indent, default=str)
@@ -717,8 +705,12 @@ def format_output(result: dict, format_type: str, pretty: bool) -> str:
         return format_text_output(result)
 
 
-def format_text_output(result: dict) -> str:
+def format_text_output(result: Any) -> str:
     lines = []
+    if not isinstance(result, dict):
+        lines.append("Metric type:Entropie")
+        lines.append(f"Metric value:{result}")
+        return "\n".join(lines)
 
     if "name" in result:
         lines.append(f"Name: {result['name']}")
@@ -735,7 +727,9 @@ def format_text_output(result: dict) -> str:
             for event in result["simulation"]:
                 lines.append(
                     f"  {event.get('event_name', 'N/A')}: "
+                    f"{event.get('start', {}).get('date', 'N/A')} at "
                     f"{event.get('start', {}).get('time', 'N/A')} - "
+                    f"{event.get('end', {}).get('date', 'N/A')} at "
                     f"{event.get('end', {}).get('time', 'N/A')} "
                     f"({event.get('duration_minutes', 0)} min)"
                 )
@@ -753,9 +747,14 @@ def format_text_output(result: dict) -> str:
     return "\n".join(lines)
 
 
-def format_metrics_csv(metrics: dict, detailed: bool = False) -> str:
+def format_metrics_csv(metrics: Any, detailed: bool = False) -> str:
     output = io.StringIO()
     writer = csv.writer(output)
+
+    if not isinstance(metrics, dict):
+        writer.writerow(["Metric", "Value"])
+        writer.writerow(["Entropy", metrics])
+        return output.getvalue()
 
     if detailed:
         writer.writerow(["Metric Category", "Metric Name", "Value", "Unit"])
@@ -809,18 +808,17 @@ def format_metrics_csv(metrics: dict, detailed: bool = False) -> str:
             writer.writerow(["Complexity Score",
                            comp.get("complexity_score", 0)])
 
-        if "entropy" in metrics:
-            writer.writerow(["Entropy", metrics["entropy"]])
+
 
     return output.getvalue()
 
 
-def generate_comparison_text(comparisons: List[Dict], compare_type: str) -> str:
+def generate_comparison_text(comparisons: List[Dict],compare_population:Any) -> str:
     lines = []
     lines.append("=" * 80)
     lines.append("ZENITH COMPARISON REPORT")
     lines.append("=" * 80)
-    lines.append(f"Comparison Type: {compare_type}")
+    lines.append(f"Comparison key:{compare_population}")
     lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     lines.append(f"Comparisons: {len(comparisons)}")
     lines.append("")
@@ -857,7 +855,7 @@ def generate_comparison_text(comparisons: List[Dict], compare_type: str) -> str:
 
 
 def generate_comparison_visualizations(comparisons: List[Dict],
-                                       compare_type: str) -> None:
+                                       compare_population: Any) -> None:
     try:
         import matplotlib.pyplot as plt
         import numpy as np
@@ -898,12 +896,12 @@ def generate_comparison_visualizations(comparisons: List[Dict],
                 ax.text(bar.get_x() + bar.get_width()/2., height + 0.1,
                        f'{height:.1f}', ha='center', va='bottom', fontsize=9)
 
-        plt.suptitle(f'Zenith Comparison - {compare_type}',
+        plt.suptitle(f'Zenith Comparison - {compare_population}',
                     fontsize=14, fontweight='bold')
         plt.tight_layout()
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"zenith_comparison_{compare_type}_{timestamp}.png"
+        filename = f"zenith_comparison_{compare_population}_{timestamp}.png"
         plt.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close()
 

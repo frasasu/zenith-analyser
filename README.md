@@ -532,12 +532,12 @@ Syntaxe :
 
 Options :
 
--	`-o, --output `: Fichier de sortie (stdout par défaut)
--	`--format `: Format de sortie (json, yaml, text) - défaut: json
--	`--law `: Analyser une loi spécifique
--	`--target `: Analyser une cible spécifique
--	`--population` : Niveau de population (-1 pour maximum)
--	`--pretty` : Pretty-print pour JSON
+-	`-o, --output `: Output file (stdout by default)
+-	`--format `: output format (json, yaml, text) - default: json
+-	`--law `: Analyze a specific law
+-	`--target `:Analyze a specific target
+-	`--population` : Population level (-1 for maximum)
+-	`--pretty` :  Pretty-print for JSON
 
 
 
@@ -555,13 +555,13 @@ cat corpus.zenith | zenith analyze -
 ##### `zenith validate` - Syntax Validation
 Validates Zenith file syntax.
 
-Syntaxe :
+Syntax :
 
         zenith validate <input> [options]
 
 Options :
 
--	`--strict `: Traiter les warnings comme des erreurs
+-	`--strict `: treat warnings as errors
 
 
 ```bash
@@ -571,19 +571,19 @@ zenith validate corpus.zenith
 # Strict validation
 zenith validate corpus.zenith --strict
 ```
-#### `zenith unparse `- Reconstruction de code
-Convertit un AST JSON en code Zenith.
+#### `zenith unparse `-  Code Reconstruction  
 
+Converts a JSON AST to Zenith code.
 Syntaxe :
 
         zenith unparse <input> [options]
 
 Options :
 
--	`-o, --output `: Fichier de sortie
--	`--format` : Formater le code de sortie
+-	`-o, --output `:Output file
+-	`--format` : Format output code
 
-Exemples :
+Examples :
 ```bash
 # Reconstruire depuis un AST
 zenith unparse ast.json -o reconstructed.zenith
@@ -592,7 +592,7 @@ zenith unparse ast.json -o reconstructed.zenith
 zenith unparse ast.json --format
 zenith convert - Conversion de format
 ```
-Convertit entre différents formats.
+Converts between different formats.
 
 Syntaxe :
 
@@ -600,8 +600,8 @@ Syntaxe :
 
 Options :
 
--	`--from` : Format d'entrée (zenith, json) - défaut: zenith
--	`--to `: Format de sortie (zenith, json) - défaut: json
+-	`--from` : Input format (zenith, json) - default: zenith
+-	`--to `:Output format (zenith, json) - default: json
 
 Exemples :
 ```bash
@@ -622,13 +622,13 @@ Syntaxe :
 
 Options :
 
--	`--type` : Type de métriques (all, temporal, complexity, density, rhythm, entropy, patterns) - défaut: all
--	`-o, --output` : Fichier de sortie
--	`--format` : Format de sortie (json, yaml, text, csv) - défaut: json
--	`--law` : Analyser une loi spécifique
--	`--target` : Analyser une cible spécifique
--	`--population` : Niveau de population
--	`--pretty `: Pretty-print pour JSON
+-	`--type` : Type of metrics (all, temporal, complexity, density, rhythm, entropy, patterns) - default: all
+-	`-o, --output` : Output file
+-	`--format` : Output format (json, yaml, text, csv) - default: json
+-	`--law` :Analyze a specific law
+-	`--target` : Analyze a specific target
+-	`--population` : Population level
+-	`--pretty `:Pretty-print for JSON
 
 
 
@@ -652,15 +652,15 @@ Syntaxe :
 
 Options :
 
--	`--type `: Type de visualisation (histogram, pie, scatter, timeline, summary, frequency, all) - défaut: histogram
--	`-o, --output `: Fichier de sortie
--	`--format `: Format d'image (png, jpg, svg, pdf) - défaut: png
--	`--law `: Visualiser une loi spécifique
--	`--target` : Visualiser une cible spécifique
--	`--population` : Niveau de population
--	`--width `: Largeur de l'image en pixels - défaut: 1200
--	`--height `: Hauteur de l'image en pixels - défaut: 800
--	`--title` : Titre personnalisé
+-	`--type `: Visualization type (histogram, pie, scatter, timeline, summary, frequency, all) - default: histogram
+-	`-o, --output `: Output file
+-	`--format `:Image format (png, jpg, svg, pdf) - default: png
+-	`--law `:Visualize a specific law
+-	`--target` :Visualize a specific target
+-	`--population` :Population level
+-	`--width `: Image width in pixels - default: 1200
+-	`--height `: Image height in pixels - default: 800
+-	`--title` : Custom title
 
 ```bash
 # Duration histogram
@@ -674,7 +674,7 @@ zenith visualize corpus.zenith --law "KeyEvents" --type timeline --title "Chrono
 ```
 #### `zenith export` - Export complet
 
-Exporte données et visualisations dans un dossier structuré.
+Exports data and visualizations to a structured folder.
 
 Syntaxe :
 
@@ -682,13 +682,13 @@ Syntaxe :
 
 Options :
 
--	`-o, --output-dir `: Répertoire de sortie - défaut: ./zenith_export
--	`--formats` : Formats à exporter (png, pdf, json, csv) - défaut: png, json
--	`--law` : Exporter une loi spécifique
--	`--target` : Exporter une cible spécifique
--	`--population` : Niveau de population
--	`--resolution` : Résolution des images en DPI - défaut: 300
--	`--zip` : Créer une archive ZIP
+-	`-o, --output-dir `:Output directory - default: ./zenith_export
+-	`--formats` : Formats to export (png, pdf, json, csv) - default: png, json
+-	`--law` : Export a specific law
+-	`--target` :Export a specific target
+-	`--population` : Population level
+-	`--resolution` : Image resolution in DPI - default: 300
+-	`--zip` : Create a ZIP archive
 
 Exemples :
 ```bash
@@ -705,7 +705,7 @@ zenith export corpus.zenith --resolution 600
 
 #### `zenith compare` - Comparaison multiple
 
-Compare plusieurs analyses Zenith.
+Compare multiple Zenith analyses.
 
 Syntaxe :
 
@@ -713,11 +713,11 @@ Syntaxe :
 
 Options :
 
--	`-o, --output` : Fichier de sortie
--	`--format` : Format de sortie (json, text) - défaut: text
--	`--labels` : Labels pour chaque entrée
--	`--compare-type` : Type de comparaison (laws, targets, populations, all) - défaut: all
--	`--visualize` : Générer des visualisations de comparaison
+-	`-o, --output` :Output file
+-	`--format` : Output format (json, text) - default: text
+-	`--labels` :Labels for each input
+-	`--population` : population level default -1 for max population.
+-	`--visualize` :Generate comparison visualizations
 
 Exemples :
 ```bash
@@ -728,7 +728,7 @@ zenith compare corpus1.zenith corpus2.zenith corpus3.zenith
 zenith compare file1.zenith file2.zenith --labels "VersionA" "VersionB"
 
 # Comparaison avec visualisation
-zenith compare *.zenith --visualize --format json
+zenith compare corpus_1.zenith corpus_2.zenith --visualize --format json
 ```
 
 
@@ -842,6 +842,162 @@ Advanced statistical analysis, pattern detection, and temporal characterization.
 - `calculate_temporal_density()`: Event density in time
 - `calculate_event_frequency()`: Event frequency counting
 
+#### `calculate_temporal_statistics()`
+
+Calculate temporal statistics of an event sequence.
+
+Paramètres :
+
+-	`simulations (List[Dict])` :List of event simulations
+
+Retour :
+
+```python
+{
+    "avg_duration": 45.2,
+    "median_duration": 42.5,
+    "min_duration": 10.0,
+    "max_duration": 120.0,
+    "duration_std": 25.3,
+    "sum_duration": 904.0,
+    "avg_dispersion": 15.8,
+    "sum_dispersion": 158.0,
+    "events_count": 20
+}
+```
+Example :
+```python
+stats = metrics.calculate_temporal_statistics(simulations)
+print(f"Durée moyenne: {stats['avg_duration']:.1f} minutes")
+```
+
+##### `calculate_rhythm_metrics()`
+
+Analyze the temporal regularity between events.
+
+Paramètres :
+
+-	`simulations (List[Dict])` : List of event simulations
+
+Retour :
+
+```python
+{
+    "rhythm_consistency": 0.87,
+    "avg_interval": 18.5,
+    "interval_std": 5.2,
+    "intervals": [15, 20, 16, ...]
+}
+```
+Consistency index:
+-	1.0 : Perfectly regular rhythm
+-	0.0 : No discernible rhythm
+
+ #### Complexity Analysis - `calculate_sequence_complexity()`
+
+Evaluates the complexity of an event sequence.
+
+Paramètres :
+
+-	`simulations (List[Dict]) `: List of event simulations.
+
+Retour :
+
+```python
+{
+    "complexity_score": 78.5,
+    "unique_events_ratio": 0.65,
+    "transition_variety": 0.85,
+    "unique_transitions_count": 42
+}
+```
+Score formula :
+
+`complexity_score = (unique_ratio * 0.4 + transition_variety * 0.6) * 100`
+
+#### `calculate_entropy()`
+
+Calculates the information entropy of the sequence.
+
+Paramètres :
+
+-	`simulations (List[Dict])` : List of event simulations.
+
+Retour : float - Entropy in bits 
+
+Exemple :
+```python
+entropy = metrics.calculate_entropy(simulations)
+print(f"Entropie de la séquence: {entropy:.2f} bits")
+```
+#### Détection de Patterns - `detect_patterns() ⚡ (Optimisé)`
+
+Detects recurring patterns in event sequences.
+
+Algorithm: Suffix Array + LCP in O(n log n)
+
+Paramètres :
+
+-	`simulations (List[Dict])` :List of event simulations.
+-	`min_pattern_length (int, optionnel)` : Minimum pattern length (default: 2)
+
+Retour :
+
+```python
+[
+    {
+        "pattern": ["eventA", "eventB", "eventC"],
+        "occurrences": [(0, 3), (15, 18), (42, 45)],
+        "length": 3
+    },
+]
+```
+Exemple d'utilisation :
+
+```python
+patterns = metrics.detect_patterns(simulations, min_pattern_length=3)
+for pattern in patterns:
+    print(f"Motif '{' -> '.join(pattern['pattern'])}' trouvé {len(pattern['occurrences'])} fois")
+```
+#### Densité Temporelle - `calculate_temporal_density()`
+
+Calcule la densité d'événements dans le temps.
+
+Paramètres :
+
+-	`simulations (List[Dict]) `: Liste des simulations
+
+Retour :
+```python
+{
+    "temporal_density": 0.75,
+    "coverage_ratio": 75.0,
+    "total_simulation_time": 1200,
+    "effective_event_time": 900
+}
+```
+Formule :
+`temporal_density = effective_event_time / total_simulation_time`
+
+#### Fréquences d'événements - `calculate_event_frequency()`
+
+Compte la fréquence de chaque type d'événement.
+
+Paramètres :
+
+-	`simulations (List[Dict]) `: Liste des simulations
+Retour :
+```python
+ Dict[str, int] - Dictionnaire {nom_événement: fréquence}
+```
+Exemple :
+```python
+freq = metrics.calculate_event_frequency(simulations)
+for event, count in sorted(freq.items(), key=lambda x: x[1], reverse=True):
+    print(f"{event}: {count} occurrences")
+```
+
+
 #### Example:
 ```python
 from zenith_analyser.metrics import ZenithMetrics
@@ -885,116 +1041,101 @@ files = visualizer.create_all_plots(
 
 ### Example 1: Complete Historical Analysis
 ```bash
-# 8. Analyse complète du corpus (format JSON)
+# 1. Analyse complète du corpus (format JSON)
 zenith analyze data/corpus.zenith --format json --pretty -o outputs/analyse_brute.json
 
-# 9. Analyse en format texte lisible
-zenith analyze data/corpus.zenith --format text -o outputs/analyse_lisible.txt
+# 2. Analyse en format texte lisible a corriger !
+zenith analyze data/corpus.zenith --population 1 --format text -o outputs/analyse_lisible.txt
 
-# 10. Analyse en YAML (si pyyaml installé)
-zenith analyze data/corpus.zenith --format yaml -o outputs/analyse.yaml
+# 3. Analyse en YAML (si pyyaml installé)
+zenith analyze data/corpus.zenith --population 1 --format yaml -o outputs/analyse.yaml
 
-# 11. Analyse d'une loi spécifique
+# 4. Analyse d'une loi spécifique
 zenith analyze data/corpus.zenith --law "session_matin" --format json -o outputs/loi_session_matin.json
 
-# 12. Analyse d'une cible spécifique
+# 5. Analyse d'une cible spécifique
 zenith analyze data/corpus.zenith --target "projet_web" -o outputs/cible_projet_web.json
 
-# 13. Analyse par niveau de population
+# 6. Analyse par niveau de population
 zenith analyze data/corpus.zenith --population 2 -o outputs/population_niveau2.json
 
-# 14. Analyse depuis stdin avec pipe
-cat data/corpus.zenith | zenith analyze - --format json | jq '.corpus_statistics'
+# 7. Analyse depuis stdin avec pipe
+cat data/corpus.zenith | zenith analyze - --format json | ConvertFrom-Json | Select-Object -ExpandProperty corpus_statistics | ConvertTo-Json
 
-# 15. Toutes les métriques du corpus
-zenith metrics data/corpus.zenith --type all --format json --pretty -o metrics/toutes_metriques.json
+# 8. Toutes les métriques du corpus
+zenith metrics data/corpus.zenith --population 2 --type all --format json --pretty -o metrics/toutes_metriques.json
 
-# 16. Métriques temporelles en CSV
-zenith metrics data/corpus.zenith --type temporal --format csv -o metrics/metriques_temporelles.csv
+# 9. Métriques temporelles en CSV
+zenith metrics data/corpus.zenith --population 2 --type temporal --format csv -o metrics/metriques_temporelles.csv
 
-# 17. Métriques de complexité
-zenith metrics data/corpus.zenith --type complexity --detailed -o metrics/complexite_detaillee.json
+# 10. Métriques de complexité
+zenith metrics data/corpus.zenith --population 2 --type complexity --detailed -o metrics/complexite_detaillee.json
 
-# 18. Métriques de densité
-zenith metrics data/corpus.zenith --type density --format json -o metrics/densite.json
+# 11. Métriques de densité
+zenith metrics data/corpus.zenith --population 2  --type density --format json -o metrics/densite.json
 
-# 19. Métriques de rythme
-zenith metrics data/corpus.zenith --type rhythm -o metrics/rythme.json
+# 12. Métriques de rythme
+zenith metrics data/corpus.zenith --population 2 --type rhythm -o metrics/rythme.json
 
-# 20. Métriques d'entropie
-zenith metrics data/corpus.zenith --type entropy --format text -o metrics/entropie.txt
+# 13. Métriques d'entropie 
+zenith metrics data/corpus.zenith --population 2  --type entropy --format yaml -o metrics/entropie.yml
 
-# 21. Détection de motifs
-zenith metrics data/corpus.zenith --type patterns --format json --pretty -o metrics/motifs.json
+# 14. Détection de motifs
+zenith metrics data/corpus.zenith --population 2  --type patterns --format json --pretty -o metrics/motifs.json
 
-# 22. Métriques pour une population spécifique
-zenith metrics data/corpus.zenith --population 3 --type all -o metrics/population3_metriques.json
+# 15. Métriques pour une population spécifique
+zenith metrics data/corpus.zenith  --population 3 --type all -o metrics/population3_metriques.json
 
-# 23. Métriques pour une loi spécifique
+# 16. Métriques pour une loi spécifique
 zenith metrics data/corpus.zenith --law "reunion_equipe" --type all -o metrics/loi_reunion.json
 
-# 24. Histogramme des durées
-zenith visualize data/corpus.zenith --type histogram --width 1600 --height 900 \
-    -o visualizations/histogramme_durees.png --title "Distribution des Durées"
+# 17. Histogramme des durées
+zenith visualize data/corpus.zenith --target "developpement" --type histogram --width 1600 --height 900 -o visualizations/histogramme_durees.png --title "Distribution des Durées"
 
-# 25. Timeline des événements
-zenith visualize data/corpus.zenith --type timeline --population 2 \
-    -o visualizations/timeline_population2.svg --format svg
+# 18. Timeline des événements
+zenith visualize data/corpus.zenith --type timeline --population 2 -o visualizations/timeline_population2.svg --format svg
 
-# 26. Diagramme circulaire des événements
-zenith visualize data/corpus.zenith --type pie --target "sante" \
-    -o visualizations/repartition_sante.pdf --format pdf
+# 19. Diagramme circulaire des événements
+zenith visualize data/corpus.zenith --type pie --target "zenith" -o visualizations/repartition_sante.pdf --format pdf
 
-# 27. Nuage de points des séquences
-zenith visualize data/corpus.zenith --type scatter --law "sprint_1" \
-    -o visualizations/scatter_sprint1.jpg
+# 20. Nuage de points des séquences
+zenith visualize data/corpus.zenith --type scatter --law "sprint_1"  -o visualizations/scatter_sprint1.jpg
 
-# 28. Résumé des métriques
-zenith visualize data/corpus.zenith --type summary --population 1 \
-    -o visualizations/resume_metriques.png
+# 21. Résumé des métriques
+zenith visualize data/corpus.zenith --type summary --population 1 -o visualizations/resume_metriques.png
 
-# 29. Fréquence des événements
-zenith visualize data/corpus.zenith --type frequency \
-    -o visualizations/frequence_evenements.png
+# 22. Fréquence des événements
+zenith visualize data/corpus.zenith --type frequency --law "sprint_1" -o visualizations/frequence_evenements.png
 
-# 30. Toutes les visualisations d'un coup
-zenith visualize data/corpus.zenith --type all --output-dir visualizations/complet \
-    --width 1400 --height 800 --title "Analyse Complète du Corpus"
+# 23. Toutes les visualisations d'un coup
+zenith visualize data/corpus.zenith --population 1 --type all  --width 1400 --height 800 --title "Analyse Complète du Corpus"
 
-# 31. Export complet (données + visuels)
-zenith export data/corpus.zenith --output-dir exports/complete \
-    --formats png json csv --resolution 300 --zip
+# 24. Export complet (données + visuels)
+zenith export data/corpus.zenith --population 1 --output-dir exports/complete --formats png json csv --resolution 300 --zip
 
-# 32. Export spécifique à une cible
-zenith export data/corpus.zenith --target "developpement" \
-    --output-dir exports/developpement --formats pdf json --zip
+# 25. Export spécifique à une cible
+zenith export data/corpus.zenith --target "developpement" --output-dir exports/developpement --formats pdf json --zip
 
-# 33. Conversion Zenith → JSON
+# 26. Conversion Zenith → JSON
 zenith convert data/corpus.zenith exports/corpus.json --from zenith --to json
 
-# 34. Conversion JSON → Zenith
-zenith convert exports/corpus.json exports/reconstructed.zenith --from json --to zenith
+# 27. Conversion JSON → Zenith  verifier cette fonctionnalite!
+zenith convert exports/ast.json exports/reconstructed.zenith --from json --to zenith
 
-# 35. Unparse depuis AST
+# 28. Unparse depuis AST  verifier cette fonctionalite!
 zenith unparse data/ast_template.json -o exports/code_regenere.zenith --format
 
-# 36. Comparaison de deux corpus
-zenith compare data/corpus_v1.zenith data/corpus_v2.zenith \
-    --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
+# 29. Comparaison de deux corpus
+zenith compare data/corpusv1.zenith data/corpusv2.zenith --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
 
-# 37. Comparaison avec visualisation
-zenith compare data/*.zenith --compare-type laws --visualize \
-    -o comparisons/comparaison_lois.txt
+# 30. Comparaison de populations
+zenith compare data/corpus.zenith data/corpus_optimise.zenith --population 2 populations --format text --output comparisons/populations_diff.txt
 
-# 38. Comparaison de populations
-zenith compare data/corpus.zenith data/corpus_optimise.zenith \
-    --compare-type populations --format text --output comparisons/populations_diff.txt
-
-# 39. Pipeline d'analyse automatisée
-zenith validate data/corpus.zenith --strict && \
-zenith analyze data/corpus.zenith --pretty > analysis/full_analysis.json && \
-zenith metrics data/corpus.zenith --type all > analysis/metrics.json && \
-zenith export data/corpus.zenith --output-dir analysis/export --zip
+# 31. Pipeline d'analyse automatisée
+zenith validate data/corpus.zenith --strict 
+zenith analyze data/corpus.zenith --population 1 --pretty > analysis/full_analysis.json 
+zenith metrics data/corpus.zenith  --population 1 --type all > analysis/metrics.json 
+zenith export data/corpus.zenith --population 1 --output-dir analysis/export --zip
 ```
 
 ### Example 2: Python Integration
@@ -1131,7 +1272,7 @@ pip install zenith-analyser
 
 ### Development Installation
 ```bash
-git clone https://github.com/yourusername/zenith-analyser.git
+git clone https://github.com/frasasu/zenith-analyser.git
 cd zenith-analyser
 pip install -e ".[dev]"
 ```

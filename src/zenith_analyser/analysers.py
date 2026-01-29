@@ -978,7 +978,7 @@ class ZenithAnalyser:
         all_targets = {}
         for target_name in self.target_analyser.get_target_names():
             try:
-                all_targets[target_name] = self.target_analyser.get_target_hierarchy(
+                all_targets[target_name] = self.target_description(
                     target_name
                 )
             except ZenithAnalyserError as e:
