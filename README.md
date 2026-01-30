@@ -1035,7 +1035,48 @@ files = visualizer.create_all_plots(
 )
 ```
 
+## Important: Current Design – Unitary Corpora & Single Time Manager (v1.1.0)
+
+zenith-analyser is intentionally designed around a **unitary corpus** model:
+
+- **One corpora = one time manager**  
+  Each `.zenith` file represents a **single agent** or **single decision-making entity** (a person, a role, or an organization treated as one unified actor).
+
+- **Sequential only – no native parallelism**  
+  Events within a `GROUP` are executed in strict sequence (using the `-` operator).  
+  There is **no built-in support for concurrent / simultaneous tasks** (no parallel execution, no multi-threading syntax like `||` or `concurrent` blocks).
+
+This design choice keeps the language simple, simulations deterministic, and analyses coherent and predictable.
+
+### What this means in practice
+
+- **Perfect for**:
+  - Individual productivity tracking (freelancers, students, personal goals)
+  - Single-role or unified-entity modeling (e.g., "the company" as one time allocator)
+  - Deep, focused analysis of one person's/ entity's time allocation
+
+- **Not (yet) supported**:
+  - Multiple independent agents interacting in the same file
+  - True parallel tasks (e.g., coding while attending a meeting)
+  - Multi-user / team simulations in a single corpus
+
+### How to handle multiple units / people / teams
+
+Simply create **one `.zenith` file per unit**:
+
+- `alice.zenith` → Alice's personal time laws
+- `bob.zenith` → Bob's personal time laws
+- `team-lead.zenith` → Team leader's overview
+
+Then use the built-in CLI to compare or aggregate insights:
+
+```bash
+zenith compare alice.zenith bob.zenith --population 1 --labels "Version 1.0" "Version 2.0" --format json -o comparisons/v1_v2.json
+zenith metrics alice.zenith --type all
+```
 ---
+
+
 
 ## Examples
 
