@@ -78,8 +78,8 @@ A target is a general or specific objective within a time management project fra
 target programming:
     key: "programming"
     dictionnary:
-        d1[d1]: "Software development expertise."
-        d2[d1]: "Android and IOS development expertise."
+        d1: "Software development expertise."
+        d2: "Android and IOS development expertise."
     law Software:
         start_date:1950-01-22 at 12:00
         period:3.45
