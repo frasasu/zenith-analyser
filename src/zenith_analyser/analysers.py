@@ -31,6 +31,7 @@ from .utils import (
     minutes_to_point,
     parse_datetime,
     point_to_minutes,
+    calculate_duration
 )
 
 
@@ -370,6 +371,7 @@ class TargetAnalyser:
                                 dict_entry["description"]
                             )
 
+
                 for name in direct_targets_names:
                     for index, event in enumerate(targets[name]["dictionnary"]):
                         if dict_entry["name"] == event.get("index", ""):
@@ -547,8 +549,13 @@ class ZenithAnalyser:
         }
 
         for index, event in enumerate(group_m):
+
             event_id = event["name"]
-            event_description = event_descriptions.get(event_id, event_id)
+            events = event_id.split("|")
+            for i, e in enumerate(events):
+                events[i] = event_descriptions.get(e, e)
+
+            event_description = "|".join(reversed(events))
 
             chronocoherence = point_to_minutes(event["chronocoherence"])
             end_date_event = current_time + timedelta(minutes=chronocoherence)
@@ -606,6 +613,31 @@ class ZenithAnalyser:
                 target_name=target_name,
             )
 
+        time_points = sorted({e[0] for e in all_simulated_events}.union({e[3] for e in all_simulated_events}))
+
+        segments = []
+
+        for i in range(len(time_points) - 1):
+            start = time_points[i]
+            end = time_points[i+1]
+
+            if start >= end:
+                continue
+
+            active = [
+                e[2] for e in all_simulated_events
+                if e[0] <= start and e[3] >= end
+            ]
+            if not active:
+                continue
+
+            title = "|".join(reversed(active))
+
+            segments.append(
+                (start, title, end)
+            )
+
+
         base_law_name = all_simulated_events[0][1]
         base_law_data = transformed_laws[base_law_name]
 
@@ -618,12 +650,12 @@ class ZenithAnalyser:
 
         new_group = []
 
-        for i, (start_time, _, event_desc, end_time) in enumerate(all_simulated_events):
+        for i, (start_time, event_desc, end_time) in enumerate(segments):
             coherence_minutes = int((end_time - start_time).total_seconds() / 60)
 
             dispersal_minutes = 0
-            if i < len(all_simulated_events) - 1:
-                next_start_time = all_simulated_events[i + 1][0]
+            if i < len(segments) - 1:
+                next_start_time = segments[i + 1][0]
                 dispersal_minutes = int(
                     (next_start_time - end_time).total_seconds() / 60
                 )
@@ -714,8 +746,11 @@ class ZenithAnalyser:
 
         for event in group:
             event_name = event.get("name", "")
-            if event_name in event_descriptions:
-                event["name"] = event_descriptions[event_name]
+            events = event_name.split("|")
+            for i, e in enumerate(events):
+                if e in event_descriptions:
+                    events[i] = event_descriptions[e]
+            event["name"]="|".join(events)
 
         total_coherence = 0
         total_dispersal = 0
@@ -761,26 +796,39 @@ class ZenithAnalyser:
                 dispersal = point_to_minutes(event["chronodispersal"])
                 current_time = add_minutes_to_datetime(current_time, dispersal)
 
+        segments = simulation
+        segments = sorted(segments, key=lambda e:parse_datetime(e["start"]["date"],e["start"]["time"]))
+
         event_metrics = {}
-        for event in group:
-            event_name = event["name"]
-            if event_name not in event_metrics:
-                event_metrics[event_name] = {
-                    "count": 0,
-                    "coherence": 0,
-                    "dispersal": 0,
-                }
 
-            metrics = event_metrics[event_name]
-            metrics["count"] += 1
-            metrics["coherence"] += point_to_minutes(event["chronocoherence"])
+        for i in range(len(segments)):
+            s = segments[i]["start"]
+            start = parse_datetime(s["date"], s["time"])
+            en = segments[i]["end"]
+            end = parse_datetime(en["date"], en["time"])
 
-        for i, event in enumerate(group):
-            if i < len(group) - 1:
-                event_name = event["name"]
-                if event_name in event_metrics:
-                    dispersal = point_to_minutes(event["chronodispersal"])
-                    event_metrics[event_name]["dispersal"] += dispersal
+            coherence = calculate_duration(start, end)
+            dispersal = 0
+
+            if i < len(segments) -1:
+                s = segments[i+1]["start"]
+                next_start = parse_datetime(s["date"], s["time"])
+                dispersal = calculate_duration(end, next_start)
+
+            events = segments[i]["event_name"].split("|")
+            for v in events:
+                if v:
+                    if v not in event_metrics:
+                        event_metrics[v]={
+                            "count":0,
+                            "coherence":0,
+                            "dispersal":0
+                        }
+
+                    event_metrics[v]["count"] +=1
+                    event_metrics[v]["coherence"] += coherence
+                    event_metrics[v]["dispersal"] += dispersal
+
 
         formatted_metrics = []
         for event_name, metrics in event_metrics.items():
@@ -802,10 +850,20 @@ class ZenithAnalyser:
 
         dispersion_metrics = {}
         event_positions = {}
+        all_events=set()
 
         for i, event in enumerate(group):
             event_name = event["name"]
-            event_positions.setdefault(event_name, []).append(i)
+            events = event_name.split("|")
+            all_events.update(set(events))
+
+
+        for event in all_events:
+            for i , event_ in enumerate(group):
+                event_name = event_["name"]
+                events = event_name.split("|")
+                if event in events:
+                    event_positions.setdefault(event, []).append(i)
 
         for event_name, positions in event_positions.items():
             if len(positions) > 1:
@@ -814,7 +872,8 @@ class ZenithAnalyser:
                     start_pos = positions[j]
                     end_pos = positions[j + 1]
                     dispersion_time = 0
-                    for k in range(start_pos, end_pos):
+                    dispersion_time += point_to_minutes(group[start_pos]["chronodispersal"])
+                    for k in range(start_pos + 1, end_pos):
                         dispersion_time += point_to_minutes(group[k]["chronocoherence"])
                         if k < len(group) - 1:
                             dispersion_time += point_to_minutes(
@@ -840,6 +899,26 @@ class ZenithAnalyser:
 
         period = minutes_to_point(total_duration)
 
+        len_events = 0
+
+        for t in  formatted_metrics:
+            len_events += t["count"]
+
+        mean_coherence = 0
+        mean_dispersal = 0
+        last_index = len(group)-1
+        last_invent = group[last_index]["name"]
+        len_last_event = len(last_invent.split("|"))
+        if len_events > 0:
+            duration_coherence = 0
+            duration_dispersal = 0
+            for t in formatted_metrics:
+                duration_coherence += t["coherence"]
+                duration_dispersal += t["dispersal"]
+            mean_coherence = int(duration_coherence / len_events) if len_events > 0 else 0
+            mean_dispersal = int(duration_dispersal / (len_events - len_last_event))  if len_events > 0 else 0
+
+
         return {
             "name": name,
             "start_date": law_data["date"],
@@ -851,17 +930,13 @@ class ZenithAnalyser:
             "sum_duration": total_duration,
             "coherence": total_coherence,
             "dispersal": total_dispersal,
-            "event_count": len(group),
+            "event_count": len_events,
             "unique_event_count": len(event_metrics),
             "simulation": simulation,
             "event_metrics": formatted_metrics,
             "dispersion_metrics": formatted_dispersion,
-            "mean_coherence": int(
-                total_coherence / len(group) if group else 0
-            ),
-            "mean_dispersal": int(
-                total_dispersal / (len(group) - 1) if len(group) > 1 else 0
-            ),
+            "mean_coherence": mean_coherence,
+            "mean_dispersal":  mean_dispersal,
             "events": list(event_metrics.keys()),
         }
 
@@ -911,6 +986,30 @@ class ZenithAnalyser:
                 target_name=target_name,
             )
 
+        time_points = sorted({e[0] for e in all_simulated_events}.union({e[3] for e in all_simulated_events}))
+
+        segments = []
+
+        for i in range(len(time_points) - 1):
+            start = time_points[i]
+            end = time_points[i+1]
+
+            if start >= end:
+                continue
+
+            active = [
+                e[2] for e in all_simulated_events
+                if e[0] <= start and e[3] >= end
+            ]
+            if not active:
+                continue
+
+            title = "|".join(reversed(active))
+
+            segments.append(
+                (start, title, end)
+            )
+
         base_law_name = all_simulated_events[0][1]
         base_law_data = transformed_laws[base_law_name]
 
@@ -923,12 +1022,12 @@ class ZenithAnalyser:
 
         new_group = []
 
-        for i, (start_time, _, event_desc, end_time) in enumerate(all_simulated_events):
+        for i, (start_time, event_desc, end_time) in enumerate(segments):
             coherence_minutes = int((end_time - start_time).total_seconds() / 60)
 
             dispersal_minutes = 0
-            if i < len(all_simulated_events) - 1:
-                next_start_time = all_simulated_events[i + 1][0]
+            if i < len(segments) - 1:
+                next_start_time = segments[i + 1][0]
                 dispersal_minutes = int(
                     (next_start_time - end_time).total_seconds() / 60
                 )

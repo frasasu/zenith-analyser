@@ -21,6 +21,7 @@ TOKEN_TYPES = [
     ("colon", r"^:"),
     ("hyphen", r"^-"),
     ("equals", r"^="),
+    ('pipe', r"^\|"),
     ("carrot", r"^\^"),
     ("lparen", r"^\("),
     ("rparen", r"^\)"),

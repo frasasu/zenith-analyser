@@ -160,6 +160,12 @@ class ZenithMetrics(ZenithAnalyser):
             else:
                 dispersions.append(0)
 
+        events_dict = self.calculate_event_frequency(simulations)
+        event_counts = 0
+        for event_count in events_dict.values():
+            event_counts += event_count
+
+
         return {
             "avg_duration": statistics.mean(durations) if durations else 0,
             "median_duration": statistics.median(durations) if durations else 0,
@@ -169,7 +175,7 @@ class ZenithMetrics(ZenithAnalyser):
             "sum_duration": sum(durations),
             "avg_dispersion": statistics.mean(dispersions) if dispersions else 0,
             "sum_dispersion": sum(dispersions) if dispersions else 0,
-            "events_count": len(simulations)
+            "events_count": event_counts
         }
 
     def calculate_event_frequency(self, simulations: List[Dict[str, Any]]) -> Dict[str, int]:
@@ -182,7 +188,10 @@ class ZenithMetrics(ZenithAnalyser):
         Returns:
             Dict[str, int]: Dictionary with event names as keys and counts as values
         """
-        events = [sim["event_name"] for sim in simulations]
+        event = [sim["event_name"] for sim in simulations]
+        events = []
+        for e in event:
+            events.extend(e.split("|"))
         return dict(Counter(events))
 
     def calculate_sequence_complexity(self, simulations: List[Dict[str, Any]]) -> Dict[str, float]:

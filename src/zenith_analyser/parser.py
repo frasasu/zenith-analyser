@@ -344,7 +344,18 @@ class Parser:
         Returns:
             Group event dictionary
         """
-        name_token = self._consume("identifier")
+        events=[]
+        events.append(self._consume("identifier")["value"])
+        self._skip_whitespace()
+
+        while self._peek() and self._peek()["type"] == "pipe":
+            self._consume(self._peek()["type"])
+            self._skip_whitespace()
+            events.append(self._consume("identifier")["value"])
+            self._skip_whitespace()
+
+
+        name_token ="|".join(events)
         self._skip_whitespace()
 
         coherence_token = self._consume_any(["dotted_number", "number"])
@@ -356,7 +367,7 @@ class Parser:
         dispersal_token = self._consume_any(["dotted_number", "number"])
 
         return {
-            "name": name_token["value"],
+            "name": name_token,
             "chronocoherence": coherence_token["value"],
             "chronodispersal": dispersal_token["value"],
         }

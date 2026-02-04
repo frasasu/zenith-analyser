@@ -245,6 +245,7 @@ class Validator:
         valid_types = [t for t in ZENITH_KEYWORDS] + [
             "comma",
             "colon",
+            "pipe",
             "hyphen",
             "equals",
             "carrot",
