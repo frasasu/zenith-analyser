@@ -916,7 +916,8 @@ class ZenithAnalyser:
                 duration_coherence += t["coherence"]
                 duration_dispersal += t["dispersal"]
             mean_coherence = int(duration_coherence / len_events) if len_events > 0 else 0
-            mean_dispersal = int(duration_dispersal / (len_events - len_last_event))  if len_events > 0 else 0
+            mean_dispersal = int(duration_dispersal / (len_events - len_last_event)) \
+            if len_events > 0 and (len_events - len_last_event) > 0 else 0
 
 
         return {
