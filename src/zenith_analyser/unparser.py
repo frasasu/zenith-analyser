@@ -18,8 +18,9 @@ AST Unparser for Zenith language.
 Reconstructs Zenith code from an Abstract Syntax Tree (AST).
 """
 
-from typing import Any, Dict
-from . import Lexer, Parser
+from  typing import Any, Dict
+from .lexer import Lexer
+from .parser import Parser
 
 
 class ASTUnparser:
@@ -185,6 +186,7 @@ class ASTUnparser:
         code = unparser.unparse()
 
         return code
+
 
     def validate_unparse(self) -> bool:
         """

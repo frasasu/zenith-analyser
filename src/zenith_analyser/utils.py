@@ -23,11 +23,13 @@ import math
 
 from .constants import DATE_FORMAT, DATETIME_FORMAT, POINT_MULTIPLIERS, TIME_FORMAT
 from .exceptions import ZenithTimeError, ZenithError
+from ics import Calendar, Event
+from .unparser import ASTUnparser
 
 
 def point_to_minutes(point: str) -> int:
     """
-    Convert a Zenith point (format M.H.D.M.Y) to minutes.
+    Convert a Zenith point (format Y.M.D.H.M) to minutes.
 
     Args:
         point: Point in Zenith format (e.g., "30.0.0" for 30 days)
@@ -478,3 +480,138 @@ def load_corpus(path:str) -> str:
         code = file.read()
 
     return code
+
+def load_ics(path:str):
+    """
+    Read calendar from a provided path of the file ics
+
+    Args:
+        path:Provided path of the file ics which contains calendar.
+
+    Returns:
+          code where contains zenith datas in zenith language.
+    """
+
+    parts=[]
+    if isinstance(path, str):
+        parts = path.split(".")
+
+    if parts and parts[-1] not in ["ics"]:
+        raise ZenithError(
+            "Error extension of file ics "
+            "set...('.ics',)"
+        )
+    with open(path, "r", encoding="utf-8") as f:
+        calendar = Calendar(f.read())
+
+    events =[]
+
+    for e in calendar.events:
+        events.append({
+            "event_name":e.name,
+            "start":e.begin.datetime.replace(tzinfo=None),
+            "end":e.end.datetime.replace(tzinfo=None)
+        })
+
+    times_points = sorted({e["start"] for e in events}.union({e["end"] for e in events}))
+
+    segments = []
+
+    for i in range(len(times_points)-1):
+        start = times_points[i]
+        end = times_points[i+1]
+
+        if start >= end:
+            continue
+
+        duration_minutes = (end - start).total_seconds()/60
+
+        active = [
+            e["event_name"] for e in events
+            if e["start"] <= start and e["end"] >= end
+        ]
+
+        if not active:
+            continue
+
+        event_name = "|".join(sorted(active))
+
+
+        segments.append({
+            "event_name":event_name,
+            "start":start,
+            "end":end,
+            "duration_minutes":duration_minutes
+        }
+        )
+
+    unique_events = set(e["event_name"] for e in events)
+
+    dictionnary = []
+
+    for i, e in enumerate(list(unique_events)):
+        dictionnary.append({
+            "name":f"event_{i+1}",
+            "description":e
+        })
+
+    for i_seg, seg in enumerate(segments):
+        for item in dictionnary:
+            events = seg["event_name"].split("|")
+            es = []
+            for e in events:
+                if e == item["description"]:
+                    e = item["name"]
+                es.append(e)
+            segments[i_seg]["event_name"] = "|".join(es)
+
+    group = []
+
+    for i in range(len(segments)):
+
+        group_element ={}
+        coherence = int(segments[i]["duration_minutes"])
+        dispersal = int(
+            (segments[i + 1]["start"] - segments[i]["end"]).total_seconds()/60
+            if i < len(segments) -1 else 0
+            )
+        name = segments[i]["event_name"]
+        group_element["name"] = name
+        group_element["chronocoherence"] = minutes_to_point(coherence)
+        group_element["chronodispersal"] = minutes_to_point(dispersal)
+
+        group.append(group_element)
+
+    start_date = segments[0]["start"].strftime("%Y-%m-%d")
+    start_time = segments[0]["start"].strftime("%H:%M")
+
+    period_minutes = 0
+
+    for gr in group:
+        period_minutes += point_to_minutes(gr["chronocoherence"]) + point_to_minutes(gr["chronodispersal"])
+    period = minutes_to_point(period_minutes)
+
+    ast = {
+        "type":"Corpus_textuel",
+        "elements":[
+            {
+                "type":"law",
+                "name":"name_law",
+                "contents":{
+                    "start_date":{
+                        "date":start_date,
+                        "time":start_time
+                    },
+                    "period":period,
+                    "events":dictionnary,
+                    "group":group
+
+                }
+            }
+        ]
+    }
+    unparse = ASTUnparser(ast)
+    corpus = unparse.unparse()
+
+    return corpus
+

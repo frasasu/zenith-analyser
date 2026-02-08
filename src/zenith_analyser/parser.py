@@ -21,7 +21,7 @@ Transforms tokens into an Abstract Syntax Tree (AST).
 from typing import Any, Dict, List, Optional, Tuple
 
 from .exceptions import ZenithParserError
-from .utils import validate_identifier
+import  zenith_analyser as zn
 
 
 class Parser:
@@ -123,7 +123,7 @@ class Parser:
         self._skip_whitespace()
 
         name_token = self._consume("identifier")
-        if not validate_identifier(name_token["value"]):
+        if not zn.validate_identifier(name_token["value"]):
             self._error(f"Invalid law name: {name_token['value']}", name_token)
 
         self._consume("colon")
@@ -229,7 +229,7 @@ class Parser:
         self._skip_whitespace()
 
         name_token = self._consume("identifier")
-        if not validate_identifier(name_token["value"]):
+        if not zn.validate_identifier(name_token["value"]):
             self._error(f"Invalid target name: {name_token['value']}", name_token)
 
         self._consume("colon")

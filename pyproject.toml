@@ -25,7 +25,8 @@ classifiers = [
 keywords = ["temporal", "chronology", "dsl", "parser", "analysis", "simulation", "zenith"]
 dependencies = [
     "pandas>=2.0,<3.0",
-    "matplotlib>=3.7,<4.0"]
+    "matplotlib>=3.7,<4.0",
+    "ics>=0.7"]
 
 [project.optional-dependencies]
 dev = [
