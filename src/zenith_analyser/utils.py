@@ -513,6 +513,32 @@ def load_ics(path:str):
             "end":e.end.datetime.replace(tzinfo=None)
         })
 
+
+    corpus = load_simulations(simulations=events)
+
+    return corpus
+
+
+
+def load_simulations(simulations:List) -> str:
+    """
+    Read simulations times
+
+    Args:
+        path:Provided simulations times.
+
+    Returns:
+          code where contains zenith datas in zenith language.
+    """
+
+    if not simulations:
+        raise ZenithError(
+            message="Provide simulations"
+        )
+
+
+    events = simulations
+
     times_points = sorted({e["start"] for e in events}.union({e["end"] for e in events}))
 
     segments = []
@@ -545,7 +571,14 @@ def load_ics(path:str):
         }
         )
 
-    unique_events = set(e["event_name"] for e in events)
+    uniques = set()
+
+    for e in events:
+        es = e["event_name"].split("|")
+        for s in es:
+            uniques.add(s)
+
+    unique_events = set(e for e in uniques)
 
     dictionnary = []
 
@@ -581,6 +614,7 @@ def load_ics(path:str):
         group_element["chronodispersal"] = minutes_to_point(dispersal)
 
         group.append(group_element)
+
 
     start_date = segments[0]["start"].strftime("%Y-%m-%d")
     start_time = segments[0]["start"].strftime("%H:%M")

@@ -31,7 +31,8 @@ from .utils import (
     minutes_to_point,
     parse_datetime,
     point_to_minutes,
-    calculate_duration
+    calculate_duration,
+    load_simulations
 )
 
 
@@ -1056,6 +1057,91 @@ class ZenithAnalyser:
         merged_law_data["dictionnary"] = final_dictionnary
 
         return self.law_description_data(target_name, merged_law_data)
+
+    def period_description(
+            self,
+            method:str,
+            key:Any,
+            start:str,
+            end:str) -> Dict:
+
+        if not isinstance(method, str) or method not in ["target", "law", "population"]:
+            raise ZenithAnalyserError(
+                message="Choose the right method of this period."
+            )
+
+        if isinstance(method, str):
+            if method == "target":
+                if not isinstance(key, str):
+                    raise ZenithAnalyserError(
+                        message="Provide the right name of the selected method (target)."
+                    )
+            elif method == "law":
+                if not isinstance(key, Tuple):
+                    raise ZenithAnalyserError(
+                        message="Provide the right arguments of the selected method (law)."
+                    )
+                if not  isinstance(key[0], str):
+                    raise ZenithAnalyserError(
+                        message="Provide the right name of the selected method(law)"
+                    )
+                if not  isinstance(key[1], int):
+                    raise ZenithAnalyserError(
+                        message="Provide the riht population of the selected method(law)"
+                    )
+            else:
+                if not isinstance(key, int):
+                    raise ZenithAnalyserError(
+                        message="Provide the right population."
+                    )
+        simulations = []
+
+        match method:
+            case "target":
+                simulations = self.target_description(key)["simulation"]
+            case "law":
+                simulations = self.law_description(key[0], key[1])["simulation"]
+            case "population":
+                simulations = self.population_description(key)["simulation"]
+
+        events = []
+
+        for sim in simulations:
+            events.append({
+                "event_name":sim["event_name"],
+                "start":parse_datetime(
+                    sim["start"]["date"],
+                    sim["start"]["time"]
+                ),
+                "end":parse_datetime(
+                    sim["end"]["date"],
+                    sim["end"]["time"]
+                )
+            })
+        start = datetime.strptime(f"{start}", f"%Y-%m-%d at %H:%M")
+        end = datetime.strptime(f"{end}", f"%Y-%m-%d at %H:%M")
+
+        simulations = []
+
+        for event in events:
+            if event["start"] >= start and event["end"] <= end:
+                simulations.append(event)
+
+        if not simulations:
+            raise ZenithAnalyserError(
+                message="There's no simulations avalaible for that period."
+            )
+
+        corpus_period = load_simulations(simulations=simulations)
+        analyser = ZenithAnalyser(corpus_period)
+
+        description = analyser.law_description("name_law")
+
+        return description
+
+
+
+
 
 
 
