@@ -45,7 +45,18 @@ from .exceptions import (
 from .lexer import Lexer
 from .parser import Parser
 from .unparser import ASTUnparser
-from .utils import minutes_to_point, point_to_minutes, validate_zenith_code, load_corpus,load_ics,validate_identifier,load_simulations
+from .utils import(
+     minutes_to_point,
+     point_to_minutes,
+     validate_zenith_code,
+     load_corpus,load_ics,
+     validate_identifier,
+     load_simulations,
+     simulations_ics,
+     export_zenith,
+     simulations_fuseau,
+     zenith_to_local
+)
 from .validator import Validator
 
 __all__ = [
@@ -68,6 +79,10 @@ __all__ = [
     "create_simple_plot",
     "validate_identifier",
     "load_simulations",
+    "simulations_ics",
+    "export_zenith",
+    "simulations_fuseau",
+    "zenith_to_local",
     # Exceptions
     "ZenithError",
     "ZenithLexerError",

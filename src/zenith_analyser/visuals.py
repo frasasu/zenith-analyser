@@ -88,14 +88,16 @@ class ZenithVisualizer:
             save_path: Path to save the image
         """
 
-        events = [sim["event_name"] for sim in simulations]
         unique_events = {}
 
-        for event in events:
-            if event in unique_events:
-                unique_events[event] += 1
-            else:
-                unique_events[event] = 1
+        for sim in simulations:
+           events=sim["event_name"].split("|")
+           for e in events:
+               duration = sim["duration_minutes"]
+               if e in unique_events:
+                   unique_events[e] += duration
+               else:
+                   unique_events[e] = duration
 
         labels = list(unique_events.keys())
         sizes = list(unique_events.values())
@@ -276,14 +278,15 @@ class ZenithVisualizer:
             save_path: Path to save the image
         """
 
-        events = [sim["event_name"] for sim in simulations]
         event_counts = {}
 
-        for event in events:
-            if event in event_counts:
-                event_counts[event] += 1
-            else:
-                event_counts[event] = 1
+        for sim in simulations:
+           events=sim["event_name"].split("|")
+           for e in events:
+               if e in event_counts:
+                   event_counts[e] += 1
+               else:
+                   event_counts[e] = 1
 
         sorted_events = sorted(event_counts.items(), key=lambda x: x[1], reverse=True)
         event_names = [item[0] for item in sorted_events]

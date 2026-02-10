@@ -17,7 +17,7 @@
 Metrics for Zenith language structures.
 Contains LawAnalyser, TargetAnalyser, and ZenithAnalyser classes.
 """
-
+import pandas as pd
 from .analysers import ZenithAnalyser
 from typing import Dict, List, Any
 from .utils import calculate_duration, parse_datetime
@@ -397,6 +397,64 @@ class ZenithMetrics(ZenithAnalyser):
             "patterns_detected": self.detect_patterns(simulations),
             "entropy": self.calculate_entropy(simulations)
         }
+
+    def get_data_period(
+        self,
+        method:str,
+        key:Any,
+        start:str,
+        end:str
+    ) -> Any:
+        """
+        Get simulation data for a specific period as a pandas DataFrame.
+
+        Args:
+            method (str): kind of period that you need (law, target or pupulation)
+            key (int, str, (str,int)): str for the target, int for the population and (str, int) for the law (name, population)
+            start (str): start date in this format "Y-m-d at H:M"
+            end (str): start date in this format "Y-m-d at H:M"
+
+        Returns:
+            Any: pandas DataFrame containing simulation data
+
+        """
+        simulations = self.period_description(
+            method,
+            key,
+            start,
+            end
+        )["simulation"]
+        datas = self.get_data_simulations(simulations)
+        return pd.DataFrame(datas)
+
+    def get_metrics_period(
+        self,
+        method:str,
+        key:Any,
+        start:str,
+        end:str
+    ) -> Any:
+        """
+        Get comprehensive metrics for a specific period.
+
+        Args:
+            method (str): kind of period that you need (law, target or pupulation)
+            key (int, str, (str,int)): str for the target, int for the population and (str, int) for the law (name, population)
+            start (str): start date in this format "Y-m-d at H:M"
+            end (str): start date in this format "Y-m-d at H:M"
+
+        Returns:
+           Dict[str, Any]: Comprehensive metrics dictionary
+
+        """
+        simulations = self.period_description(
+            method,
+            key,
+            start,
+            end
+        )["simulation"]
+        return self.get_comprehensive_metrics(simulations)
+
 
     def get_data_law(self, name: str, population: int = 1) -> Any:
         """

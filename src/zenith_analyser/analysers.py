@@ -32,7 +32,8 @@ from .utils import (
     parse_datetime,
     point_to_minutes,
     calculate_duration,
-    load_simulations
+    load_simulations,
+    zenith_to_local
 )
 
 
@@ -516,6 +517,94 @@ class ZenithAnalyser:
 
         self.law_analyser = LawAnalyser(self.ast)
         self.target_analyser = TargetAnalyser(self.ast)
+
+    def corpus_fuseau(
+       self,
+       local_tz:str,
+       orginal_tz :str="UTC") -> str:
+        """
+        Adapt timezone datatime for whole corpus.
+
+        Args:
+            local_tz (str):e.g 'Africa/Bujumbura'
+            orginal_tz (str):Initialized to "UTC"
+
+        Returns:
+            str: code zenith for  whole corpus
+        """
+        from .lexer import Lexer
+        from .parser import Parser
+        from .unparser import ASTUnparser
+        import copy
+
+        lexer = Lexer(self.code)
+        tokens = lexer.tokenise()
+        parser = Parser(tokens)
+        ast = parser.parse()[0]
+
+        new_ast = copy.deepcopy(ast)
+
+        def _traverse(elements: List[Dict[str, Any]]) -> None:
+            for element in elements:
+                if element.get("type") == "law":
+                    self._law_fuseau(element,local_tz,orginal_tz)
+                elif element.get("type") == "target":
+                    contents = element.get("contents", {})
+                    blocks = contents.get("blocks", [])
+                    _traverse(blocks)
+
+        _traverse(new_ast.get("elements", []))
+
+        unparser = ASTUnparser(new_ast)
+        code = unparser.unparse()
+
+        return code
+
+
+
+    def _law_fuseau(
+        self, law_node: Dict[str, Any],
+        local_tz:str,
+        orginal_tz :str="UTC"
+    ) -> None:
+        """
+        Adapt timezone datatime for specific law_data.
+
+        Args:
+            law_node (Dicr[str, Any]): Law node for adapt timezone datetime
+            local_tz (str):e.g 'Africa/Bujumbura'
+            orginal_tz (str):Initialized to "UTC"
+
+        Returns:
+               None
+        """
+        name = law_node.get("name")
+        if not name:
+            return
+
+        contents = law_node.get("contents", {})
+        start_date = contents.get("start_date", {})
+
+        start_date_ = start_date.get("date")
+        start_time_ = start_date.get("time")
+
+        ZENITH_FM ="%Y-%m-%d %H:%M"
+        start = parse_datetime(
+                start_date_,
+                start_time_
+            )
+        start = zenith_to_local(
+            zenith_date=start.strftime(ZENITH_FM),
+            local_tz=local_tz,
+            orginal_tz=orginal_tz
+        )
+
+        start = datetime.strptime(start, ZENITH_FM)
+
+        start_date["date"] = start.strftime("%Y-%m-%d")
+        start_date["time"] = start.strftime("%H:%M")
+
+
 
     def _simulate_law_events(
         self, law_data: Dict[str, Any], dict_map: Dict[str, str]
@@ -1138,11 +1227,6 @@ class ZenithAnalyser:
         description = analyser.law_description("name_law")
 
         return description
-
-
-
-
-
 
 
     def analyze_corpus(self) -> Dict[str, Any]:

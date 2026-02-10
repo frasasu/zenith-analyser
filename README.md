@@ -161,6 +161,7 @@ Manipulates temporal laws - planning structures that define events, their durati
 **Interpretation**: Provides a list of all available temporal programs. Useful for visualizing planning options before deciding which one to use.
 
 ```python
+analyser = ZenithAnalyser(corpus)
 names = analyser.law_analyser.get_law_names()
 print(names)
 # Returns: ['DailyWork', 'WeeklyPlanning', 'ResearchSessions']
@@ -788,7 +789,7 @@ end_target
 #### Token Types
 - **Structural keywords**: `law`, `target`, `end_law`, `end_target`
 - **Sections**: `Event`, `GROUP`, `start_date`, `period`, `key`, `dictionnary`
-- **Operators**: `:`, `^`, `-`, `(`, `)`, `[`, `]`
+- **Operators**: `:`, `^`, `-`, `|`,`(`, `)`, `[`, `]`
 - **Data types**: `identifier`, `string`, `date`, `time`, `number`, `dotted_number`
 
 #### AST Structure
@@ -1044,7 +1045,7 @@ zenith-analyser is intentionally designed around a **unitary corpus** model:
 
 - **Sequential only – no native parallelism**  
   Events within a `GROUP` are executed in strict sequence (using the `-` operator).  
-  There is **no built-in support for concurrent / simultaneous tasks** (no parallel execution, no multi-threading syntax like `||` or `concurrent` blocks).
+  There is **no built-in support for concurrent / simultaneous tasks** (no parallel execution, no multi-threading syntax like `|` or `concurrent` blocks).
 
 This design choice keeps the language simple, simulations deterministic, and analyses coherent and predictable.
 

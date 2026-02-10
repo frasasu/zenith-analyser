@@ -20,6 +20,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
 import math
+from zoneinfo import ZoneInfo
 
 from .constants import DATE_FORMAT, DATETIME_FORMAT, POINT_MULTIPLIERS, TIME_FORMAT
 from .exceptions import ZenithTimeError, ZenithError
@@ -518,7 +519,33 @@ def load_ics(path:str):
 
     return corpus
 
+def export_zenith(simulations:List) -> str:
+    """
+    Read simulations times
 
+    Args:
+        path:Provided simulations times.
+
+    Returns:
+          code where contains zenith datas in zenith language.
+    """
+
+    events =[]
+
+    for sim in simulations:
+        events.append({
+            "event_name":sim["event_name"],
+            "start":parse_datetime(
+                sim["start"]["date"],
+                sim["start"]["time"]
+            ),
+            "end":parse_datetime(
+                sim["end"]["date"],
+                sim["end"]["time"]
+            )
+        })
+
+    return load_simulations(simulations=events)
 
 def load_simulations(simulations:List) -> str:
     """
@@ -649,3 +676,159 @@ def load_simulations(simulations:List) -> str:
 
     return corpus
 
+
+def simulations_ics(simulations: List) -> str:
+    """
+    Read simulations times
+
+    Args:
+        path:Provided simulations times.
+
+    Returns:
+          code where contains ics code for calendar.
+    """
+    if not simulations:
+        raise ZenithError("Simulations provided are empty.")
+
+    active_events: Dict[str, Dict] = {}
+    final_events = []
+
+    for i, sim in enumerate(simulations):
+        start = parse_datetime(sim["start"]["date"], sim["start"]["time"])
+        end   = parse_datetime(sim["end"]["date"],   sim["end"]["time"])
+
+        current_events = set(sim["event_name"].split("|"))
+
+        if i > 0:
+            previous_end = parse_datetime(
+                simulations[i-1]["end"]["date"],
+                simulations[i-1]["end"]["time"]
+            )
+            dispersal = int((start - previous_end).total_seconds() / 60)
+        else:
+            dispersal = None
+
+        for ev in list(active_events.keys()):
+            if ev not in current_events:
+                final_events.append(active_events.pop(ev))
+
+        for ev in current_events:
+            if ev in active_events:
+
+                if dispersal == 0:
+                    active_events[ev]["end"] = end
+                else:
+                    final_events.append(active_events.pop(ev))
+                    active_events[ev] = {
+                        "event_name": ev,
+                        "start": start,
+                        "end": end
+                    }
+            else:
+                active_events[ev] = {
+                    "event_name": ev,
+                    "start": start,
+                    "end": end
+                }
+
+
+    final_events.extend(active_events.values())
+
+    lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Zenith Analyser//Chrononomie//FR",
+        "CALSCALE:GREGORIAN"
+    ]
+
+    now = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+
+    for i, ev in enumerate(final_events):
+        lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:zenith-{i}@chrononomie",
+            f"DTSTAMP:{now}",
+            f"DTSTART:{ev['start'].strftime('%Y%m%dT%H%M%SZ')}",
+            f"DTEND:{ev['end'].strftime('%Y%m%dT%H%M%SZ')}",
+            f"SUMMARY:{ev['event_name']}",
+            "END:VEVENT"
+        ])
+
+    lines.append("END:VCALENDAR")
+    return "\n".join(lines)
+
+
+def zenith_to_local(
+        zenith_date:str,
+        local_tz:str,
+        orginal_tz :str="UTC")->str:
+    """
+    Convert a Zenith datetime (UTC implicit ,'YYYY-MM-DD at HH:MM')
+    into a local datetime string in the same format.
+
+    Args:
+        zenith_date (str):e.g '2026-02-10 at 08:00'
+        local_tz (str):e.g 'Africa/Bujumbura'
+        local_tz (str):e.g 'Africa/Bujumbura'
+
+    Returns:
+            str: e.g, '2026-02-10 at 10:00'
+    """
+
+    ZENITH_FM ="%Y-%m-%d %H:%M"
+
+    utc_dt = datetime.strptime(zenith_date, ZENITH_FM)
+    utc_dt = utc_dt.replace(tzinfo=ZoneInfo(orginal_tz ))
+
+    local_dt = utc_dt.astimezone(ZoneInfo(local_tz))
+
+    return local_dt.strftime(ZENITH_FM)
+
+
+def simulations_fuseau(
+    simulations:List,
+    local_tz:str,
+    orginal_tz :str="UTC")->List:
+
+    """
+    Convert a simulation with specific timezone datetime
+    into a simulation with local datetime string .
+
+    Args:
+        simulations (List):Provided simulations
+        local_tz (str):e.g 'Africa/Bujumbura'
+        orginal_tz (str):Initialized to "UTC"
+
+    Returns:
+            str: code zenith for summary law (name_law)
+    """
+
+    events =[]
+    ZENITH_FM ="%Y-%m-%d %H:%M"
+
+    for sim in simulations:
+        start = parse_datetime(
+                sim["start"]["date"],
+                sim["start"]["time"]
+            )
+        end = parse_datetime(
+                sim["end"]["date"],
+                sim["end"]["time"]
+            )
+        start = zenith_to_local(
+            zenith_date=start.strftime(ZENITH_FM),
+            local_tz=local_tz,
+            orginal_tz=orginal_tz
+        )
+        end = zenith_to_local(
+            zenith_date=end.strftime(ZENITH_FM),
+            local_tz=local_tz,
+            orginal_tz=orginal_tz
+        )
+        events.append({
+            "event_name":sim["event_name"],
+            "start":datetime.strptime(start, ZENITH_FM),
+            "end":datetime.strptime(end, ZENITH_FM)
+        })
+
+    return load_simulations(simulations=events)
