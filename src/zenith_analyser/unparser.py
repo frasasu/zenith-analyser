@@ -167,25 +167,6 @@ class ASTUnparser:
         """Unparse an event (same as dictionnary entry)."""
         self._unparse_dictionnary_entry(event)
 
-    def format_code(self, code: str) -> str:
-        """
-        Format Zenith code with consistent indentation.
-
-        Args:
-            code: Raw Zenith code
-
-        Returns:
-            Formatted Zenith code
-        """
-        lexer = Lexer(code)
-        tokens = lexer.tokenise()
-        parser = Parser(tokens)
-        ast = parser.parse()[0]
-
-        unparser = ASTUnparser(ast)
-        code = unparser.unparse()
-
-        return code
 
 
     def validate_unparse(self) -> bool:

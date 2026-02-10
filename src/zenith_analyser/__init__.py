@@ -55,7 +55,8 @@ from .utils import(
      simulations_ics,
      export_zenith,
      simulations_fuseau,
-     zenith_to_local
+     zenith_to_local,
+     format_code
 )
 from .validator import Validator
 
@@ -83,6 +84,7 @@ __all__ = [
     "export_zenith",
     "simulations_fuseau",
     "zenith_to_local",
+    "format_code",
     # Exceptions
     "ZenithError",
     "ZenithLexerError",

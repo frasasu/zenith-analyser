@@ -832,3 +832,25 @@ def simulations_fuseau(
         })
 
     return load_simulations(simulations=events)
+
+def format_code(code: str) -> str:
+        """
+        Format Zenith code with consistent indentation.
+
+        Args:
+            code: Raw Zenith code
+
+        Returns:
+            Formatted Zenith code
+        """
+        from .lexer import Lexer
+        from .parser import Parser
+        lexer = Lexer(code)
+        tokens = lexer.tokenise()
+        parser = Parser(tokens)
+        ast = parser.parse()[0]
+
+        unparser = ASTUnparser(ast)
+        code = unparser.unparse()
+
+        return code

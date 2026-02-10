@@ -18,7 +18,7 @@ Tests for the ASTUnparser class.
 
 import pytest
 
-from src.zenith_analyser import ASTUnparser, ZenithAnalyser
+from src.zenith_analyser import ASTUnparser, ZenithAnalyser,format_code
 
 
 def test_unparser_initialization(parser):
@@ -93,7 +93,7 @@ GROUP:(A 1.0^0)
 end_law
 end_target"""
 
-    formatted = unparser.format_code(code)
+    formatted = format_code(code)
 
     # Check indentation
     lines = formatted.split("\n")
@@ -327,7 +327,7 @@ end_target
     assert "law planning:" in unparsed
 
     # Test formatted unparse
-    formatted = unparser.format_code(unparsed)
+    formatted = format_code(unparsed)
 
     # Parse formatted code to ensure it's valid
     analyser2 = ZenithAnalyser(formatted)
