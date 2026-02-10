@@ -26,7 +26,7 @@ keywords = ["temporal", "chronology", "dsl", "parser", "analysis", "simulation",
 dependencies = [
     "pandas>=2.0,<3.0",
     "matplotlib>=3.7,<4.0",
-    "numpy>=1.26"
+    "numpy>=1.26",
     "ics>=0.7"]
 
 [project.optional-dependencies]
