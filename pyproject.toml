@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zenith-analyser"
-version = "1.1.0"
+version = "1.1.1"
 description = "A library for analyzing structured temporal laws"
 readme = "README.md"
 authors = [{name = "François TUMUSAVYEYESU", email = "frasasudev@gmail.com"}]
