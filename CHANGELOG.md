@@ -5,10 +5,10 @@ All notable changes to Zenith Analyser will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.2/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# Zenith-Analyser v1.1.2
+# Zenith-Analyser v1.1.3
 
 
-## [1.1.2] - 2026-02-11
+## [1.1.3] - 2026-02-11
 
 This release brings major enhancements in temporal modelling, calendar integration, and timezone handling, making the library more robust and aligned with real-world planning workflows while staying faithful to Chrononomy principles.
 
@@ -42,9 +42,8 @@ Event objects are now richer and include:
 - Original start/end times  
 - Computed duration  
 - Chronocoherence / chronodispersal flags  
-Full compatibility with core chrononomy concepts: time usefulness vs dispersion, strict sequencing, and now true concurrency via `=` and `>` operators.
 
-### Example usage (v1.1.1)
+### Example usage (v1.1.3)
 
 ```python
 import zenith_analyser as zn
@@ -57,14 +56,14 @@ analyser = zn.ZenithAnalyser(corpus)
 result = analyser.period_description(
   method="population",
   key=0,
-  start="2025-01-01 00:00",
-  end="2030-12-31 23:59"
+  start="2025-01-01 at 00:00",
+  end="2030-12-31 at 23:59"
 )
 simulations = result["simulation"]
 
 # Export the discovered temporal laws (including new simultaneity operators)
 code_law = zn.export_zenith(simulations=simulations)
-with open("zenith_laws_v1.1.1.zth", "w", encoding="utf-8") as f:
+with open("zenith_laws_v1.1.3.zth", "w", encoding="utf-8") as f:
   f.write(code_law)
 ```
 
