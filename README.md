@@ -504,7 +504,7 @@ simulations = result["simulation"]
 
 # Generate ICS-compatible output with explicit timezone conversion
 # (local_tz = display/target timezone; original_tz = reference timezone of input events)
-code_law = export_zenith(simulations=simulations)
+code_law = simulations_ics(simulations=simulations)
 with open("corpus.ics", "w", encoding="utf-8") as f:
     f.write(code_law)
 
