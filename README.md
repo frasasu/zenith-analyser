@@ -296,7 +296,7 @@ print(target_desc['events'])
 pop = analyser.population_description(population=2)
 print(pop['sum_duration'])
 ```
-##### `period_description(method:str,key:Any,start:str, end:st)`
+##### `period_description(method:str,key:Any,start:str, end:str)`
 **Parameters**:
    - `method (str)` - Choose among of law, population or target
    - `key (int,str or (str, int))` - (int) population to analyze (-1 = maximum) (str) name for target and (str, int) for law it means (str) for name law and (int) for population
