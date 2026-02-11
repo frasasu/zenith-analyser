@@ -19,7 +19,7 @@ Analyze and simulate temporal laws with events, chronocoherence, chronodispersal
 and hierarchical targets using the Zenith language.
 """
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 __author__ = "François TUMUSAVYEYESU"
 __email__ = "frasasudev@gmail.com"
 __license__ = "Apache 2.0"
