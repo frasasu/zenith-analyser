@@ -125,7 +125,7 @@ A law is a planned session designed to achieve one or more specific objectives o
 1. **start_date**: Date and time when the session begins
 2. **period**: Total planned duration for the session
 3. **Event**: List of actions or learnings, referenced via the target's dictionary
-4. **GROUP**: Notation (A subscript^superscript - B subscript^superscript - C subscript^superscript - D subscript^superscript ) where:
+4. **GROUP**: Notation (A|B subscript^superscript - B subscript^superscript - C subscript^superscript - D|A subscript^superscript ) where:
    - subscript represents chronocoherence duration (useful and directly contributive time)
    - superscript represents chronodispersal duration (used but not directly contributive time)
 
