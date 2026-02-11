@@ -54,7 +54,7 @@ from .utils import(
      load_simulations,
      simulations_ics,
      export_zenith,
-     simulations_fuseau,
+     simulations_timezone,
      zenith_to_local,
      format_code
 )
@@ -82,7 +82,7 @@ __all__ = [
     "load_simulations",
     "simulations_ics",
     "export_zenith",
-    "simulations_fuseau",
+    "simulations_timezone",
     "zenith_to_local",
     "format_code",
     # Exceptions
