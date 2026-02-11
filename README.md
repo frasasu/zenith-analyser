@@ -28,11 +28,14 @@ A powerful Python library for analyzing structured temporal laws with events, ch
 1. [Introduction](#introduction)
 2. [Core Concepts](#core-concepts)
 3. [API Documentation](#api-documentation)
-4. [CLI Usage](#cli-usage)
-5. [Zenith Language Specification](#zenith-language-specification)
-6. [Advanced Features](#advanced-features)
-7. [Examples](#examples)
-8. [Installation](#installation)
+4.  [Zenith Point System](#zenith-point-system)
+5.  [Zenith Corpora System](#zenith-corpora-system)
+6.  [CLI Usage](#cli-usage)
+7. [Zenith Language Specification](#zenith-language-specification)
+8. [Advanced Features](#advanced-features)
+9. [Examples](#examples)
+10. [Installation](#installation)
+
 
 ---
 
@@ -82,11 +85,11 @@ target programming:
         d2: "Android and IOS development expertise."
     law Software:
         start_date:1950-01-22 at 12:00
-        period:3.45
+        period:5.15
         Event:
              A[d1]:"Frontend developpement."
              B[d1]:"Backend developpement."
-        GROUP:( A 2.15^0 - B 1.30^0)
+        GROUP:( A 2.15^0 - B|A 1.30^0)
     end_law
     target Mobile:
          key:"Android and IOS developpement expertise."
@@ -95,11 +98,11 @@ target programming:
              d2[d2]:"IOS developpement."
         law android:
             start_date:1950-01-24 at 12:00
-            period:6.0
+            period:9.45
             Event:
                  A[d1]:"Frontend developpement."
                  B[d1]:"Backend developpement."
-            GROUP:(A 1.0^1.0 - A 2.0^15 - B 1.45^0)
+            GROUP:(A 1.0^1.0 - A|B 2.0^15 - B|A 1.45^0)
         end_law
         law ios:
             start_date:1950-01-25 at 12:00
@@ -130,12 +133,12 @@ A law is a planned session designed to achieve one or more specific objectives o
 ```python
 law a2025_12_25_15_45:
     start_date:2025-12-25 at 15:45
-    period:4.45
+    period:10.0
     Event:
         A: "Learning pandas."
         B:"Sweeping room."
         C:"Preparing of foods."
-    GROUP:(A 30^0 - B 1.15^0 - C 45^0 - A 15^0 - B 2.0^0)
+    GROUP:(A 30^0 - B|C 1.15^0 - C 45^0 - A 15^0 - A|B|C 2.0^0)
 end_law
 ```
 
@@ -151,7 +154,7 @@ end_law
 ### 1. LawAnalyser
 
 #### Role
-Manipulates temporal laws - planning structures that define events, their durations (chronocoherence/chronodispersal), and their relationships (order, simultaneity, exclusive/inclusive choices) in this version we hold one relationship which is order (`-`).
+Manipulates temporal laws — planning structures that define events, their durations (split into chronocoherence for time useful and directly contributive to objectives, and chronodispersal for time used but not directly contributive), and their relationships in a structured temporal framework. In this version, we support two temporal relationships: order (denoted by `-`), which enforces strict sequential execution where one event fully completes before the next begins (e.g., `A - B` means `A` ends before `B` starts), and simultaneity (denoted by `|` ), which allows events to occur at the same time without mutual blocking (e.g., (`A|B`) means `A` and `B` run simultaneously, overlapping completely in their active periods). This enables more expressive modeling of parallel or concurrent activities within a single GROUP, while still preserving deterministic validation of overall chronocoherence, dispersal, and total period constraints.
 
 #### Methods
 
@@ -283,13 +286,32 @@ target_desc = analyser.target_description("MyTarget")
 print(target_desc['events'])
 ```
 
-##### `population_description(population=-1)`
+##### `population_description (population=-1)`
+
 **Parameters**: `population (int)` - population to analyze (-1 = maximum)
 **Returns**: `dict` - complete population simulation
 **Interpretation**: Represents cumulative temporal load.
 
 ```python
 pop = analyser.population_description(population=2)
+print(pop['sum_duration'])
+```
+##### `period_description(method:str,key:Any,start:str, end:st)`
+**Parameters**:
+   - `method (str)` - Choose among of law, population or target
+   - `key (int,str or (str, int))` - (int) population to analyze (-1 = maximum) (str) name for target and (str, int) for law it means (str) for name law and (int) for population
+   - `start (str)` - str datetime `"YYYY-MM-DD at HH:MM"`
+   - `end (str)` - str datetime `"YYYY-MM-DD at HH:MM"`
+**Returns**: `dict` - complete population simulation
+**Interpretation**: Represents cumulative temporal load.
+
+```python
+pop = analyser.period_description(
+    method="law",
+    key=("daily_work",3),
+    start="2026-02-10 at 12:00",
+    end="2026-02-15 at 12:00"
+)
 print(pop['sum_duration'])
 ```
 
@@ -304,7 +326,7 @@ print(corpus['corpus_statistics'])
 # Main keys returned:
 # - corpus_statistics, ast_summary, laws, targets, validation
 ```
-## ⏱️ Zenith Point System
+## Zenith Point System
 
 ### Time Conversion Functions
 
@@ -357,7 +379,7 @@ hours = duration // 60               # 1
 minutes = duration % 60              # 45
 ```
 
-## 📁 Zenith Corpora System
+## Zenith Corpora System
 
 ### Definition
 
@@ -443,6 +465,77 @@ simulations = metrics.population_description(1)["simulation"]
 results = metrics.get_comprehensive_metrics(simulations)
 
 print(f"Analysis complete: {results['event_count']} events")
+```
+
+## Loading and Processing ICS Files with Timezone Normalization
+
+
+Calendar data is imported from standard iCalendar (`.ics`) files via the load_ics function, which parses events including their start/end times, durations, summaries, and any embedded timezone information (TZID or VTIMEZONE components). All parsed datetimes are normalized internally to UTC as the reference timeline: events with explicit TZID are converted to UTC-aware datetimes, while floating/naive times (no timezone declared) are treated as UTC by default. This ensures a consistent, timezone-agnostic internal representation where all naive dates in Zenith (durations, simulation periods, chronocoherence/dispersal calculations) are expressed and processed exclusively in UTC. This approach prevents offset-related inconsistencies during analysis and simulation, even when the original events come from different timezones.
+
+### Workflow Example: From ICS Import to Analysis and Export
+
+The typical workflow begins by loading an ICS corpus, computing metrics, running simulations over a long period, exporting the derived temporal laws in native Zenith format (.zth), and finally generating timezone-adjusted ICS-compatible output. Here is an improved and corrected code example:
+
+```python
+from zenith_analyser import (
+    ZenithMetrics,
+    load_ics,
+    ZenithAnalyser,
+    export_zenith,
+    simulations_timezone,
+)
+
+
+corpus = load_ics("corpus.ics")
+
+# Compute basic metrics on the corpus (chronocoherence, dispersal, etc.)
+metrics = ZenithMetrics(corpus)
+
+# Initialize analyser and run population-based simulation over a decade
+analyser = ZenithAnalyser(corpus)
+result = analyser.period_description(
+    method="population",
+    key=0,
+    start="2021-01-06 at 00:00",          # Interpreted as UTC or Internal reference timezone of the corpus
+    end="2031-02-15 at 23:45"             # Interpreted as UTC or Internal reference timezone of the corpus
+)
+simulations = result["simulation"]
+
+# Generate ICS-compatible output with explicit timezone conversion
+# (local_tz = display/target timezone; original_tz = reference timezone of input events)
+code_law = export_zenith(simulations=simulations)
+with open("corpus.ics", "w", encoding="utf-8") as f:
+    f.write(code_law)
+
+# Export the inferred/analyzed temporal laws in native Zenith text format
+code_zenith = simulations_timezone(
+    simulations=simulations,
+    local_tz="UTC",
+    original_tz="Africa/Bujumbura"     # e.g., original events were in Bujumbura time (UTC+2)
+)
+with open("corpus.zenith", "w", encoding="utf-8") as f:
+    f.write(code_zenith)
+import zenith_analyser as zn
+
+# Load the native Zenith corpus (.zth) — internal dates are in UTC
+corpus_ = zn.load_corpus("Corpus_Zenith.zth")
+
+# Create the analyser from the loaded corpus
+analyser = zn.ZenithAnalyser(corpus_)
+
+# Convert the entire corpus so that it is expressed in Bujumbura local time
+# → all dates/times will be rewritten as if they were in Africa/Bujumbura
+code = analyser.corpus_timezone(
+    local_tz="Africa/Bujumbura",      # Target timezone (display / wall-clock)
+    original_tz="UTC"                 # Internal reference timezone of the corpus
+    # or the reverse: local_tz="UTC", original_tz="Africa/Bujumbura"
+)
+
+# Save the converted version
+with open("Corpus_Zenith_Bujumbura.zth", "w", encoding="utf-8") as f:
+    f.write(code)
+
+print("Conversion completed → file 'Corpus_Zenith_Bujumbura.zth' created.")
 ```
 
 ### 🛠️ Development Tools

@@ -518,7 +518,7 @@ class ZenithAnalyser:
         self.law_analyser = LawAnalyser(self.ast)
         self.target_analyser = TargetAnalyser(self.ast)
 
-    def corpus_fuseau(
+    def corpus_timezone(
        self,
        local_tz:str,
        orginal_tz :str="UTC") -> str:
@@ -547,7 +547,7 @@ class ZenithAnalyser:
         def _traverse(elements: List[Dict[str, Any]]) -> None:
             for element in elements:
                 if element.get("type") == "law":
-                    self._law_fuseau(element,local_tz,orginal_tz)
+                    self._law_timezone(element,local_tz,orginal_tz)
                 elif element.get("type") == "target":
                     contents = element.get("contents", {})
                     blocks = contents.get("blocks", [])
@@ -562,7 +562,7 @@ class ZenithAnalyser:
 
 
 
-    def _law_fuseau(
+    def _law_timezone(
         self, law_node: Dict[str, Any],
         local_tz:str,
         orginal_tz :str="UTC"

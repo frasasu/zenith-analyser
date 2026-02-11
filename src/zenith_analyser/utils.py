@@ -785,7 +785,7 @@ def zenith_to_local(
     return local_dt.strftime(ZENITH_FM)
 
 
-def simulations_fuseau(
+def simulations_timezone(
     simulations:List,
     local_tz:str,
     orginal_tz :str="UTC")->List:
