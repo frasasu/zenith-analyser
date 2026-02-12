@@ -1130,6 +1130,11 @@ files = visualizer.create_all_plots(
 )
 ```
 
+
+---
+
+
+
 ## Examples
 
 ### Example 1: Complete Historical Analysis
