@@ -54,17 +54,34 @@ Zenith-Analyser is a comprehensive time management and temporal analysis library
 
 ## Core Concepts
 
-### 1. Generation & Population
+Here's a significantly improved, clearer, more precise, and professionally written English version ready to copy:
+
+---
+
+### 1. Generation and Population
 
 #### Generation
-In Zenith, a **generation** refers to the hierarchical level of an objective within a goal system. It expresses the structural depth of an objective, from global intentions to concrete and immediate actions. Each objective belongs to a single generation, allowing precise positioning of its role, degree of specialization, and connection with more general or specific objectives.
+In the Zenith framework, a **generation** represents the hierarchical depth of an objective within the goal tree. It indicates how far an objective is positioned from the root intentions. 
+
+Generation 1 corresponds to the highest-level, most general, and encompassing objectives — the broad life intentions and strategic goals. Each subsequent generation is *engendered* by the one above it: a generation 2 objective is a direct child of a generation 1 objective, a generation 3 objective is a child of a generation 2 objective, and so on. This creates a clear parent-child relationship in which higher generations represent increasingly specific, concrete, and operational sub-objectives.
+
+The generation concept allows the system to organize objectives according to their natural level of abstraction and specialization.
 
 #### Population
-The **population** represents the set of active and influential objectives at a given moment. Unlike generation, which is a positional concept, population is a contextual concept. It groups objectives from several generations that interact simultaneously and guide decisions, priorities, and time allocation in lived reality.
+The **population** defines the active hierarchical context for temporal analysis and simulation. It represents the cumulative scope of objectives considered simultaneously, ranging from the most general objectives (generation 1) up to a chosen depth *n*.
+
+Unlike generation, which is a fixed structural property of a single objective, population is a dynamic and cumulative concept. A population of level *n* includes all objectives from generation 1 to generation *n*, along with all temporal laws defined at these levels and all laws belonging to their descendant sub-objectives. 
+
+In essence, the population determines “how deep” the analysis looks into the hierarchy while maintaining the contextual influence of higher-level goals. The special value `-1` represents the maximum population, activating the entire hierarchical system.
 
 #### Relationship Between Generation and Population
-Generation allows understanding where an objective is located, while population allows understanding with which other objectives it acts. An objective can only belong to one generation, but it always participates in a broader population. In Zenith, this distinction enables coherent temporal analysis by separating the structure of objectives from their actual influence on time dynamics.
+Generation and population work together as complementary concepts. While generation describes the **structural position** of an objective (its depth and degree of specialization), population defines the **scope of observation** — which layers of the hierarchy are considered active together during analysis.
 
+This distinction is fundamental to the Machine Timing approach: it allows the framework to separate the static architecture of goals from their dynamic temporal interaction. An objective always belongs to exactly one generation, but it contributes to the temporal load of every population level that includes it and all the populations above it.
+
+By combining these two notions, Zenith can perform multi-scale temporal analyses — from high-level strategic overviews (low population) to highly detailed operational examinations (high population) — while preserving the natural hierarchical relationships between intentions and actions.
+
+---
 ### 2. Target (Objective)
 
 #### Definition
