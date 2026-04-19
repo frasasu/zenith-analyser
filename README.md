@@ -54,10 +54,6 @@ Zenith-Analyser is a comprehensive time management and temporal analysis library
 
 ## Core Concepts
 
-Here's a significantly improved, clearer, more precise, and professionally written English version ready to copy:
-
----
-
 ### 1. Generation and Population
 
 #### Generation
